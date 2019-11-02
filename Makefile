@@ -18,6 +18,10 @@ build: dir $(OBJ)
 debug: CFLAGS += -g -D _DEBUG
 debug: build;
 
+test: LDFLAGS += -Wl,-etest_main
+test: debug
+	$(BUILDDIR)/$(OUTPUT)
+
 dir:
 	@mkdir -p $(OBJECTDIR)
 	@mkdir -p $(BUILDDIR)
