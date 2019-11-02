@@ -28,8 +28,35 @@ void signal_term ( );
 
 void signal_term_child ( );
 
+int test_main(	int argc,
+		char* argv[] )
+{
+	printf("TEST MODE. NOT FUNCTIONAL\n");
+
+	char in[128];
+	char out[128];
+
+	strncpy ( in, "www.example.com\0", 127);
+
+	printf("%s\n", in);
+
+	int written = fqdn_to_qname (in,128,out,128);
+
+	if (written < 0) {
+		printf("invallid fqdn\n");
+		return 1;
+	}
+
+	for(int i = 0; i < written; i++)
+		printf(" %x ", out[i]);
+
+	printf("\n\n");
+	return 0;
+}
+
 int main(	int argc,
-		char* argv[] ) {
+		char* argv[] )
+{
 	int 		ret;
        	struct		sockaddr_in sock_server_addr;
 	
