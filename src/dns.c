@@ -3,7 +3,7 @@
 int fqdn_to_qname( char* _source, int _sourcelen, char* _sink ,int _sinklen )
 {
 	// TODO Opttimize
-	int i = 0;
+	int i;
 	int lastdot = 0;
 
 	if (_sourcelen < 1 || _sinklen < 1)
@@ -11,11 +11,10 @@ int fqdn_to_qname( char* _source, int _sourcelen, char* _sink ,int _sinklen )
 
 	_sink[0] = ' '; //Set to known value
 
-	while ( (i < _sourcelen) && (i < (_sinklen - 1))) { //Copy offset 1
+	for(i = 0; ((i < _sourcelen) && (i < (_sinklen - 1))); i++) { //Copy offset 1
 		if(! _source[i])
 			break;
 		_sink[i+1] = _source[i];
-		i++;
 	}
 
 	if( _source[i] ) // _source not terminated
@@ -33,6 +32,7 @@ int fqdn_to_qname( char* _source, int _sourcelen, char* _sink ,int _sinklen )
 
 	return i+2; 
 }
+
 
 int qname_to_fqdn( char* _source, int _sourcelen, char* _sink, int _sinklen )
 {

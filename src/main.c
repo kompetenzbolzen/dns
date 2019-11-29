@@ -12,9 +12,33 @@
 
 #include <signal.h>
 
+#include "dns.h"
+#include "log.h"
+
 #define PRINT_ERRNO() {printf("%s:%i %i:%s\n", __FILE__, __LINE__, errno, strerror(errno));}
 
 #define UDP_BUFFER_LEN 512
+
+struct dns_message {
+	//Header
+	uint16_t id;
+
+	uint8_t QR;	//Query:0 Reply:1
+	uint8_t OPCODE;	//Query:0 Iquery:1 Status:2
+	uint8_t AA;	//Authorative answer
+	uint8_t TC;	//Truncation
+	uint8_t RD;	//Recursion Desired
+	uint8_t RA;	//Recursion Available
+	uint8_t RCODE;	//Response Code
+
+	uint16_t question_count;
+	uint16_t answer_count;
+	uint16_t authorative_count;
+	uint16_t additional_count;
+
+	//Question
+	//Answer
+ };
 
 int sock_server;
 
@@ -36,7 +60,7 @@ int test_main(	int argc,
 	char in[128];
 	char out[128];
 
-	strncpy ( in, "www.example.com\0", 127);
+	strncpy ( in, "aaa.aaaaa.aa\0", 127);
 
 	printf("%s\n", in);
 
@@ -65,6 +89,8 @@ int main(	int argc,
 	signal ( SIGTERM, signal_term );
 	signal ( SIGINT,  signal_term );
 
+	log_init_stdout ( _LOG_DEBUG );
+
 	sock_server = socket ( AF_INET, SOCK_DGRAM, 0 );
 	if ( sock_server == -1 ) {
 		PRINT_ERRNO();
@@ -76,11 +102,11 @@ int main(	int argc,
 	sock_server_addr.sin_port   = htons( 53 );
 	ret = inet_aton ( "0.0.0.0", & sock_server_addr.sin_addr );
 	if( ret == 0 ) { //Error on 0, no errno!
-		printf( "inet_aton(): Invalid IP\n" );
+		LOGPRINTF(_LOG_NOTE, "inet_aton(): Invalid IP\n" );
 		return 1;
 	}
 
-	ret = bind(	sock_server,
+	ret = bind (	sock_server,
 			(struct sockaddr*) &sock_server_addr,
 			sizeof(struct sockaddr_in) );
 	if ( ret == -1 ) {
@@ -103,22 +129,23 @@ int main(	int argc,
 				(struct sockaddr*) &sock_client_addr,
 				&sock_client_addr_len );
 		if ( ret == -1 ) {
-			PRINT_ERRNO();
+			LOGPRINTF( _LOG_ERROR, "recvfrom()");
 			return errno;
 		}
 
-		printf ( "recieved\n" );
+		LOGPRINTF(_LOG_NOTE, "Connection");
 
 		if ( dns_parse_packet ( sock_server,
 					&sock_client_addr,
 					sock_client_addr_len,
 					recv_buffer,
 					ret ) ) {
-			PRINT_ERRNO();
+			LOGPRINTF(_LOG_ERROR, "dns_parse_packet()");
 			return errno;
 		}
-
-		printf ( "forked\n" );
+		else {
+			LOGPRINTF ( _LOG_DEBUG, "forked\n" );
+		}
 	}
 
 	close( sock_server );
@@ -130,7 +157,8 @@ int dns_parse_packet (	int _socket,
 			struct sockaddr_in *sockaddr_client,
 			socklen_t sockaddr_client_len,
 			char* buffer,
-			int bufflen ) {
+			int bufflen )
+{
 	pid_t pid = fork();
 	
 	if ( pid > 0)
@@ -140,7 +168,10 @@ int dns_parse_packet (	int _socket,
 
 	signal ( SIGTERM, signal_term_child);
 
-	sleep ( 999 ); //Keep child active
+	struct dns_message msg;
+
+	msg.id = *( (uint16_t*) buffer );
+	msg.QR =  0x80 & *( (uint8_t*) (buffer + 2));
 
 	exit ( 0 );
 }
