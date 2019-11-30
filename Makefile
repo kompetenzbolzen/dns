@@ -30,8 +30,12 @@ $(OBJECTDIR)/%.o: $(SOURCEDIR)/%.c
 	@echo [CC] $<
 	@$(CC) $(CFLAGS) -c $< -o $@
 
-.PHONY: clean
+#sudo setcap 'cap_net_bind_service=+ep' /path/to/prog
+#to allow port access
+run: build
+	$(BUILDDIR)/$(OUTPUT)
 
+.PHONY: clean
 clean:
 	@echo [RM] $(OBJ)
 	@echo [RM] $(BUILDDIR)/$(OUTPUT)

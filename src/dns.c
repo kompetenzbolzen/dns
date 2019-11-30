@@ -1,5 +1,36 @@
 #include "dns.h"
 
+int dns_parse_packet ( char* _buffer, int _bufflen, struct dns_message* _msg )
+{
+	if ( !_buffer || !_bufflen || !_msg )
+		return 1; //Invalid input
+
+	if ( _bufflen < 12 )
+		return 1; //Too short to contain a DNS header
+	
+	//TODO test
+	_msg->header.id = *( (uint16_t*) _buffer );	
+	_msg->header.QR =  ( 0x80 & *( (uint8_t*) (_buffer + 2)) ) >> 7;
+	_msg->header.OPCODE = (0x78 & *( (uint8_t*) (_buffer + 2))) >> 3;
+	_msg->header.AA = (0x04 & *( (uint8_t*) (_buffer + 2))) >> 2;
+	_msg->header.TC = (0x02 & *( (uint8_t*) (_buffer + 2))) >> 1;
+	_msg->header.RD = (0x01 & *( (uint8_t*) (_buffer + 2)));
+	_msg->header.RA = (0x80 & *( (uint8_t*) (_buffer + 3))) >> 7;
+	_msg->header.Z  = (0x70 & *( (uint8_t*) (_buffer + 3))) >> 4;
+	_msg->header.RCODE = (0x0F & *( (uint8_t*) (_buffer + 3)));
+	_msg->header.question_count	= (*((uint8_t*) (_buffer + 4)) << 8) | *((uint8_t*) (_buffer + 5));
+	_msg->header.answer_count	= (*((uint8_t*) (_buffer + 6)) << 8) | *((uint8_t*) (_buffer + 7));
+	_msg->header.authorative_count	= (*((uint8_t*) (_buffer + 8)) << 8) | *((uint8_t*) (_buffer + 9));
+	_msg->header.additional_count	= (*((uint8_t*) (_buffer + 10)) << 8) | *((uint8_t*) (_buffer + 11));
+
+	printf("ANSWER %i\n", _msg->header.answer_count);
+	printf("QUESTI %i\n", _msg->header.question_count);
+	printf("AUTHOR %i\n", _msg->header.authorative_count);
+	printf("ADDITI %i\n", _msg->header.additional_count);
+	
+	return 1;
+}
+
 int fqdn_to_qname( char* _source, int _sourcelen, char* _sink ,int _sinklen )
 {
 	int i;

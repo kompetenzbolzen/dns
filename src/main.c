@@ -19,38 +19,20 @@
 
 #define UDP_BUFFER_LEN 512
 
-struct dns_message {
-	//Header
-	uint16_t id;
-
-	uint8_t QR;	//Query:0 Reply:1
-	uint8_t OPCODE;	//Query:0 Iquery:1 Status:2
-	uint8_t AA;	//Authorative answer
-	uint8_t TC;	//Truncation
-	uint8_t RD;	//Recursion Desired
-	uint8_t RA;	//Recursion Available
-	uint8_t RCODE;	//Response Code
-
-	uint16_t question_count;
-	uint16_t answer_count;
-	uint16_t authorative_count;
-	uint16_t additional_count;
-
-	//Question
-	//Answer
- };
-
+//main server socket
 int sock_server;
 
-int dns_parse_packet ( 	int _socket,
+int handle_connection (	int _socket,
 			struct sockaddr_in *sockaddr_client,
 			socklen_t sockaddr_client_len,
-			char* buffer,
-			int bufflen );
+			char* _buffer,
+			int _bufflen );
 
 void signal_term ( );
 
 void signal_term_child ( );
+
+void signal_child ( );
 
 int test_main(	int argc,
 		char* argv[] )
@@ -60,7 +42,7 @@ int test_main(	int argc,
 	char in[128];
 	char out[128];
 
-	strncpy ( in, "aaa.aaaaa.aa\0", 127);
+	strncpy ( in, "sub.domain.example.com\0", 127);
 
 	printf("%s\n", in);
 
@@ -73,6 +55,15 @@ int test_main(	int argc,
 
 	for(int i = 0; i < written; i++)
 		printf(" %x ", out[i]);
+
+	written = qname_to_fqdn (out,128,in,128);
+	
+	if (written < 0) {
+		printf("invalid qname\n");
+		return 1;
+	}
+
+	printf("%s\n", in);
 
 	printf("\n\n");
 	return 0;
@@ -89,11 +80,14 @@ int main(	int argc,
 	signal ( SIGTERM, signal_term );
 	signal ( SIGINT,  signal_term );
 
+	//Avoid zombie processes
+	signal (SIGCHLD, SIG_IGN);
+
 	log_init_stdout ( _LOG_DEBUG );
 
 	sock_server = socket ( AF_INET, SOCK_DGRAM, 0 );
 	if ( sock_server == -1 ) {
-		PRINT_ERRNO();
+		LOGPRINTF(_LOG_ERROR, "socket() failed");
 		return errno;
 	}
 
@@ -102,7 +96,7 @@ int main(	int argc,
 	sock_server_addr.sin_port   = htons( 53 );
 	ret = inet_aton ( "0.0.0.0", & sock_server_addr.sin_addr );
 	if( ret == 0 ) { //Error on 0, no errno!
-		LOGPRINTF(_LOG_NOTE, "inet_aton(): Invalid IP\n" );
+		LOGPRINTF(_LOG_NOTE, "inet_aton(): Invalid bind IP\n" );
 		return 1;
 	}
 
@@ -110,7 +104,7 @@ int main(	int argc,
 			(struct sockaddr*) &sock_server_addr,
 			sizeof(struct sockaddr_in) );
 	if ( ret == -1 ) {
-		PRINT_ERRNO();
+		LOGPRINTF(_LOG_ERROR, "bind() failed");
 		return errno;
 	}
 
@@ -118,6 +112,7 @@ int main(	int argc,
 	{
 		struct 		sockaddr_in sock_client_addr;
 		socklen_t	sock_client_addr_len;
+		pid_t pid;
 
 		sock_client_addr_len = sizeof ( struct sockaddr_in );
 		memset ( &sock_client_addr, '\0', sock_client_addr_len );
@@ -133,18 +128,18 @@ int main(	int argc,
 			return errno;
 		}
 
-		LOGPRINTF(_LOG_NOTE, "Connection");
+		LOGPRINTF(_LOG_DEBUG, "UDP Packet size %i", ret);
 
-		if ( dns_parse_packet ( sock_server,
+		if ( (pid = handle_connection (sock_server,
 					&sock_client_addr,
 					sock_client_addr_len,
 					recv_buffer,
-					ret ) ) {
-			LOGPRINTF(_LOG_ERROR, "dns_parse_packet()");
+					ret ) ) ) {
+			LOGPRINTF(_LOG_ERROR, "handle_connection() failed");
 			return errno;
 		}
 		else {
-			LOGPRINTF ( _LOG_DEBUG, "forked\n" );
+			LOGPRINTF ( _LOG_DEBUG, "forked " );
 		}
 	}
 
@@ -153,11 +148,11 @@ int main(	int argc,
 	return 0;
 }
 
-int dns_parse_packet (	int _socket,
+int handle_connection (	int _socket,
 			struct sockaddr_in *sockaddr_client,
 			socklen_t sockaddr_client_len,
-			char* buffer,
-			int bufflen )
+			char* _buffer,
+			int _bufflen )
 {
 	pid_t pid = fork();
 	
@@ -165,13 +160,27 @@ int dns_parse_packet (	int _socket,
 		return 0;
 	else if ( pid < 0 )
 		return errno;
+	
+	//Change signal handler. signal_term shuts down entire socket on TERM
+	signal ( SIGTERM, signal_term_child );
 
-	signal ( SIGTERM, signal_term_child);
+	//echo request
+	sendto (_socket, _buffer, _bufflen, 0, (struct sockaddr*) sockaddr_client, sockaddr_client_len);
 
+	//Testing recieved question
+	//TODO remove
+	char out[128];
+	qname_to_fqdn((_buffer+12), _bufflen-12, out, 128);
+	printf("%s\n", out);
+
+	
 	struct dns_message msg;
-
-	msg.id = *( (uint16_t*) buffer );
-	msg.QR =  0x80 & *( (uint8_t*) (buffer + 2));
+	
+	if (dns_parse_packet (_buffer, _bufflen, &msg) ) {
+		LOGPRINTF (_LOG_DEBUG, "Malformed packet recieved. parsing failed");
+		close ( _socket );
+		exit( 1 );
+	}
 
 	exit ( 0 );
 }
@@ -179,7 +188,8 @@ int dns_parse_packet (	int _socket,
 void signal_term ( ) {
 	printf( "Recieved Signal. Terminating active connections and closing socket\n" );
 	
-	kill ( 0, SIGTERM ); //terminate all child processes
+	//terminate all children >:)
+	kill ( 0, SIGTERM ); 
 
 	shutdown ( sock_server, SHUT_RDWR );
 	close ( sock_server );
