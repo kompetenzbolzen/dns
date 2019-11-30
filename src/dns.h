@@ -12,6 +12,8 @@
 int fqdn_to_qname( char* _source, int _sourcelen, char* _sink, int _sinklen );
 
 /**
- * Opposite of fqdn_to_qname()
+ * Convert a QNAME back to a FQDN, reversing fqdn_to_qname( )
+ * returns: length of string in _sink, < 0 on failure
+ * _sink may still be altered in failed attempts, but not terminated.
  * */
 int qname_to_fqdn( char* _source, int _sourcelen, char* _sink, int _sinklen );
