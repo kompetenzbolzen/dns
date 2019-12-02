@@ -34,10 +34,29 @@ void signal_term_child ( );
 
 void signal_child ( );
 
-int test_main(	int argc,
+int main1(	int argc,
 		char* argv[] )
 {
 	printf("TEST MODE. NOT FUNCTIONAL\n");
+	
+	/*
+	//Fuzztest the QNAME checker
+	FILE* urand = fopen ("/dev/urandom", "r");
+	char rand[128];
+	char out[129];
+	out[128] = 0;
+
+	if (!urand)
+		return 1;
+
+	for (;;) {
+		if (fread (rand, 128, 1, urand) > 0) {
+			if ( qname_check(rand, 128) > 0 ) {
+				qname_to_fqdn ( rand, 128, out, 128);
+				printf("Valid %s\n", out);
+			}
+		}
+	}*/
 
 	char in[128];
 	char out[128];
@@ -48,6 +67,11 @@ int test_main(	int argc,
 
 	int written = fqdn_to_qname (in,128,out,128);
 
+	if ( qname_check(out,128) < 0)
+		printf("Wrong\n");
+	else
+		printf("qname ok\n");
+
 	if (written < 0) {
 		printf("invallid fqdn\n");
 		return 1;
@@ -57,7 +81,7 @@ int test_main(	int argc,
 		printf(" %x ", out[i]);
 
 	written = qname_to_fqdn (out,128,in,128);
-	
+
 	if (written < 0) {
 		printf("invalid qname\n");
 		return 1;
@@ -72,9 +96,9 @@ int test_main(	int argc,
 int main(	int argc,
 		char* argv[] )
 {
-	int 		ret;
-       	struct		sockaddr_in sock_server_addr;
-	
+	int		ret;
+	struct		sockaddr_in sock_server_addr;
+
 	char recv_buffer[ UDP_BUFFER_LEN ];
 
 	signal ( SIGTERM, signal_term );
@@ -112,7 +136,6 @@ int main(	int argc,
 	{
 		struct 		sockaddr_in sock_client_addr;
 		socklen_t	sock_client_addr_len;
-		pid_t pid;
 
 		sock_client_addr_len = sizeof ( struct sockaddr_in );
 		memset ( &sock_client_addr, '\0', sock_client_addr_len );
@@ -130,7 +153,7 @@ int main(	int argc,
 
 		LOGPRINTF(_LOG_DEBUG, "UDP Packet size %i", ret);
 
-		if ( (pid = handle_connection (sock_server,
+		if ( (handle_connection (sock_server,
 					&sock_client_addr,
 					sock_client_addr_len,
 					recv_buffer,
@@ -155,12 +178,12 @@ int handle_connection (	int _socket,
 			int _bufflen )
 {
 	pid_t pid = fork();
-	
+
 	if ( pid > 0)
 		return 0;
 	else if ( pid < 0 )
 		return errno;
-	
+
 	//Change signal handler. signal_term shuts down entire socket on TERM
 	signal ( SIGTERM, signal_term_child );
 
@@ -169,25 +192,25 @@ int handle_connection (	int _socket,
 
 	//Testing recieved question
 	//TODO remove
-	char out[128];
-	qname_to_fqdn((_buffer+12), _bufflen-12, out, 128);
-	printf("%s\n", out);
 
-	
 	struct dns_message msg;
-	
+
 	if (dns_parse_packet (_buffer, _bufflen, &msg) ) {
 		LOGPRINTF (_LOG_DEBUG, "Malformed packet recieved. parsing failed");
 		close ( _socket );
 		exit( 1 );
 	}
 
+	char out[128];
+	qname_to_fqdn( msg.question[0].qname, 100, out, 128);
+	printf("%s\n", out);
+	
 	exit ( 0 );
 }
 
 void signal_term ( ) {
 	printf( "Recieved Signal. Terminating active connections and closing socket\n" );
-	
+
 	//terminate all children >:)
 	kill ( 0, SIGTERM ); 
 

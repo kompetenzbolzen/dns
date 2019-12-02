@@ -1,18 +1,32 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 //TODO remove
 #include <stdio.h>
 
+/**
+ * Data is COPIED
+ * */
 struct dns_header;
 
+/**
+ * Data is REFERENCED
+ * */
 struct dns_question;
 
+/**
+ * Data is REFERENCED
+ * */
 struct dns_answer;
 
 /**
  * DNS Message struct
+ *
+ * A initialized instance is only valid as long as
+ * the buffer used to create it remains unchanged
  * */
 struct dns_message;
 
@@ -35,32 +49,33 @@ struct dns_header {
 };
 
 struct dns_question {
-	char* qname;
-	uint16_t qtype;
-	uint16_t qclass;
+	const char* qname;
+	const uint16_t* qtype;
+	uint16_t* qclass;
 };
 
 struct dns_answer {
 	char* name; //in qname format
-	uint16_t type;
-	uint16_t class;
-	uint32_t ttl;
-	uint16_t rdlength;
+	uint16_t* type;
+	uint16_t* class;
+	uint32_t* ttl;
+	uint16_t* rdlength;
 	char* rdata;
 };
 
 struct dns_message {
 	struct dns_header header;
-	
-	int qcount;
+
+	int question_count;
 	struct dns_question* question;
 
-	int acount;
+	int answer_count;
 	struct dns_answer* answer;
 };
 
 /**
  * Parse the packet in _buffer and populate the dns_message struct
+ * Struct may still be written to on failure but contents are invalid
  * returns: 0 on success, !=0 on failure
  * */
 int dns_parse_packet ( char* _buffer, int _bufflen, struct dns_message* _msg );
@@ -80,3 +95,9 @@ int fqdn_to_qname( char* _source, int _sourcelen, char* _sink, int _sinklen );
  * _sink may still be altered in failed attempts, but not terminated.
  * */
 int qname_to_fqdn( char* _source, int _sourcelen, char* _sink, int _sinklen );
+
+/**
+ * Check a QNAME and get length
+ * returns: length of QNAME including NULL-byte at the end, < 0 on error
+ * */
+int qname_check( char* _source, int _sourcelen );
