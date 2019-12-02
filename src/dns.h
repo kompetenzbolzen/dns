@@ -12,18 +12,49 @@
 //TODO remove
 #include <stdio.h>
 
+//Resource Records
+#define RR_A	1
+#define RR_NS	2
+#define RR_CNAME 5
+#define RR_SOA	6
+#define RR_MX	15
+#define RR_TXT	16
+#define RR_AAAA	28
+#define RR_SRV	33
+
+//Record Classes
+#define CL_IN	1 //Internet
+#define CL_CS	2 //CSNET (Onsolete)
+#define CL_CH	3 //CHAOS
+#define CL_HS	4 //Hesiod
+
+//OPCODES
+#define OP_Q	0 //Query
+#define OP_IQ	1 //Inverse Query
+#define OP_STAT	2 //Status request
+
+//Responsecode
+#define RCODE_NOERR	0
+#define RCODE_FORMAT	1
+#define RCODE_SERVFAIL	2
+#define RCODE_NAMEERR	3
+#define RCODE_NI	4 //Not implemented
+#define RCODE_REFUSED	5
+
+#define FLIP_BYTES(u)	(((0x00FF & u) << 8) | ((0xFF00 & u) >> 8))
+
 /**
  * Data is COPIED
  * */
 struct dns_header;
 
 /**
- * Data is REFERENCED
+ * QNAME is REFERENCED
  * */
 struct dns_question;
 
 /**
- * Data is REFERENCED
+ * NAME is REFERENCED
  * */
 struct dns_answer;
 
@@ -55,16 +86,16 @@ struct dns_header {
 
 struct dns_question {
 	const char* qname;
-	const uint16_t* qtype;
-	uint16_t* qclass;
+	uint16_t qtype;
+	uint16_t qclass;
 };
 
 struct dns_answer {
 	char* name; //in qname format
-	uint16_t* type;
-	uint16_t* class;
-	uint32_t* ttl;
-	uint16_t* rdlength;
+	uint16_t type;
+	uint16_t class;
+	uint32_t ttl;
+	uint16_t rdlength;
 	char* rdata;
 };
 
@@ -78,10 +109,24 @@ struct dns_message {
 	struct dns_answer* answer;
 };
 
+int dns_construct_header (
+		struct	dns_header* _header,
+		char*	_buffer,
+		int	_bufflen
+		);
+
+/**
+ * Frees all malloced memory
+ * */
+int dns_destroy_struct ( struct dns_message* _msg );
+
 /**
  * Parse the packet in _buffer and populate the dns_message struct
  * Struct may still be written to on failure but contents are invalid
  * returns: 0 on success, !=0 on failure
+ *
+ * ONLY WRITES QUESTION SECTION. ALL OTHER ARE IGNORED
+ *
  * */
 int dns_parse_packet ( char* _buffer, int _bufflen, struct dns_message* _msg );
 

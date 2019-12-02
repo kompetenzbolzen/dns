@@ -5,8 +5,52 @@
 
 #include "dns.h"
 
+int dns_construct_header ( struct dns_header* _header, char* _buffer, int _bufflen )
+{
+	if ( !_buffer || !_header || _bufflen < 12 )
+		return -1;
+
+	*((uint16_t*)_buffer) = _header->id; //Since only copied, no flipping necessary
+	_buffer[2] = 
+		((_header->QR & 0x01) << 7) |
+		((_header->OPCODE & 0x0F) << 3) |
+		((_header->AA & 0x01) << 2) |
+		((_header->TC & 0x01) << 1) |
+		( _header->RD & 0x01);
+	_buffer[3] =
+		((_header->RA & 0x01) << 7) |
+		((_header->Z  & 0x07) << 4) |
+		( _header->RCODE & 0x0F);
+	*((uint16_t*)(_buffer + 4 )) = FLIP_BYTES(_header->question_count);
+	*((uint16_t*)(_buffer + 6 )) = FLIP_BYTES(_header->answer_count);
+	*((uint16_t*)(_buffer + 8 )) = FLIP_BYTES(_header->authorative_count);
+	*((uint16_t*)(_buffer + 10)) = FLIP_BYTES(_header->additional_count);
+
+	return 12;
+}
+
+int dns_destroy_struct ( struct dns_message* _msg )
+{
+	if ( !_msg )
+		return -1;
+
+	if ( _msg->question_count > 0 && _msg->question) {
+		free ( _msg->question );
+		_msg->question = NULL;
+	}
+
+	if ( _msg->answer_count > 0 && _msg->answer) {
+		free ( _msg->answer );
+		_msg->answer = NULL;
+	}
+
+	return 0;
+}
+
 int dns_parse_packet ( char* _buffer, int _bufflen, struct dns_message* _msg )
 {
+	//TODO refactor
+
 	if ( !_buffer || !_bufflen || !_msg )
 		return 1; //Invalid input
 
@@ -23,15 +67,24 @@ int dns_parse_packet ( char* _buffer, int _bufflen, struct dns_message* _msg )
 	_msg->header.RA = (0x80 & *( (uint8_t*) (_buffer + 3))) >> 7;
 	_msg->header.Z  = (0x70 & *( (uint8_t*) (_buffer + 3))) >> 4;
 	_msg->header.RCODE = (0x0F & *( (uint8_t*) (_buffer + 3)));
-	_msg->header.question_count	= (*((uint8_t*) (_buffer + 4 )) << 8) | *((uint8_t*) (_buffer + 5 ));
-	_msg->header.answer_count	= (*((uint8_t*) (_buffer + 6 )) << 8) | *((uint8_t*) (_buffer + 7 ));
+	_msg->question_count = _msg->header.question_count = (*((uint8_t*) (_buffer + 4 )) << 8) | *((uint8_t*) (_buffer + 5 ));
+	_msg->answer_count   = _msg->header.answer_count   = (*((uint8_t*) (_buffer + 6 )) << 8) | *((uint8_t*) (_buffer + 7 ));
 	_msg->header.authorative_count	= (*((uint8_t*) (_buffer + 8 )) << 8) | *((uint8_t*) (_buffer + 9 ));
 	_msg->header.additional_count	= (*((uint8_t*) (_buffer + 10)) << 8) | *((uint8_t*) (_buffer + 11));
+
 	//TODO remove
 	printf("ANSWER %i\n", _msg->header.answer_count);
 	printf("QUESTI %i\n", _msg->header.question_count);
 	printf("AUTHOR %i\n", _msg->header.authorative_count);
 	printf("ADDITI %i\n", _msg->header.additional_count);
+
+	//Check for sensible QD, AN, NS and ARCOUNTS before massive memory allocation
+	if(	_msg->header.question_count > 4 ||
+		_msg->header.answer_count > 32 ||
+		_msg->header.authorative_count > 32 ||
+		_msg->header.additional_count > 32 ) {
+		return 1;
+	}
 
 	//Allocate question array
 	//TODO Only implements question section.
@@ -39,6 +92,9 @@ int dns_parse_packet ( char* _buffer, int _bufflen, struct dns_message* _msg )
 	_msg->question_count = _msg->header.question_count;
 	_msg->question = malloc ( qsize );
 	memset( _msg->question, 0, qsize );
+
+	if (!_msg->question) //malloc failed
+		return 1;
 
 	int ptr = 12; //byte counter
 	for (int i = 0; i < _msg->question_count; i++) {
@@ -49,12 +105,15 @@ int dns_parse_packet ( char* _buffer, int _bufflen, struct dns_message* _msg )
 
 		_msg->question[i].qname = _buffer + ptr;
 		ptr += qname_len;
-		_msg->question[i].qtype = (uint16_t*) (_buffer + ptr);
-		ptr += 2;
-		_msg->question[i].qclass = (uint16_t*) (_buffer + ptr);
 
-		if( ptr >= _bufflen ) //Out of bounds check
+		if( ptr >= (_bufflen - 4) ) //Out of bounds check
 			return 1;
+
+		_msg->question[i].qtype =  ((uint8_t)*(_buffer + ptr) << 8) | ((uint8_t)*(_buffer + ptr + 1));
+		ptr += 2;
+		_msg->question[i].qclass = ((uint8_t)*(_buffer + ptr) << 8) | ((uint8_t)*(_buffer + ptr + 1));
+		ptr += 2;
+
 	}
 
 	return 0;
@@ -91,7 +150,6 @@ int fqdn_to_qname( char* _source, int _sourcelen, char* _sink ,int _sinklen )
 
 	return i+2;
 }
-
 
 int qname_to_fqdn( char* _source, int _sourcelen, char* _sink, int _sinklen )
 {

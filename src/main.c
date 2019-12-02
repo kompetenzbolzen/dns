@@ -158,17 +158,11 @@ int main(	int argc,
 
 		LOGPRINTF(_LOG_DEBUG, "UDP Packet size %i", ret);
 
-		if ( (handle_connection (sock_server,
-					&sock_client_addr,
-					sock_client_addr_len,
-					recv_buffer,
-					ret ) ) ) {
-			LOGPRINTF(_LOG_ERROR, "handle_connection() failed");
-			return errno;
-		}
-		else {
-			LOGPRINTF ( _LOG_DEBUG, "forked " );
-		}
+		handle_connection ( sock_server,
+				&sock_client_addr,
+				sock_client_addr_len,
+				recv_buffer,
+				ret );
 	}
 
 	close( sock_server );
@@ -182,35 +176,28 @@ int handle_connection (	int _socket,
 			char* _buffer,
 			int _bufflen )
 {
-	pid_t pid = fork();
-
-	if ( pid > 0)
-		return 0;
-	else if ( pid < 0 )
-		return errno;
-
-	//Change signal handler. signal_term shuts down entire socket on TERM
-	signal ( SIGTERM, signal_term_child );
-
-	//echo request
-	sendto (_socket, _buffer, _bufflen, 0, (struct sockaddr*) sockaddr_client, sockaddr_client_len);
-
-	//Testing recieved question
-	//TODO remove
-
 	struct dns_message msg;
 
 	if (dns_parse_packet (_buffer, _bufflen, &msg) ) {
 		LOGPRINTF (_LOG_DEBUG, "Malformed packet recieved. parsing failed");
-		close ( _socket );
-		exit( 1 );
+		return 1;
 	}
 
-	char out[128];
-	qname_to_fqdn( msg.question[0].qname, 100, out, 128);
-	printf("%s\n", out);
+	if(msg.question_count > 0) {
+		char out[128];
+		qname_to_fqdn( msg.question[0].qname, 100, out, 128);
+		printf("%s %i\n", out, msg.question[0].qtype);
+	}
 	
-	exit ( 0 );
+	dns_destroy_struct ( &msg );
+
+	//Always return NXDOMAIN
+	struct dns_header head = {msg.header.id,1,OP_Q,0,0,0,0,0,RCODE_NAMEERR,0,0,0,0};
+	char ret[20];
+	int retlen = dns_construct_header ( &head, ret, 20 );
+	sendto (_socket, ret, retlen, 0, (struct sockaddr*) sockaddr_client, sockaddr_client_len);
+	
+	return 0;
 }
 
 void signal_term ( ) {
