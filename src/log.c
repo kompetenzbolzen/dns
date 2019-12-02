@@ -1,3 +1,8 @@
+/* log.c
+ * (c) Jonas Gunz, 2019
+ * License: MIT
+ * */
+
 #include "log.h"
 
 const char* log_loglevel_str[5] = {

@@ -1,3 +1,8 @@
+/* dns.c
+ * (c) Jonas Gunz, 2019
+ * License: MIT
+ * */
+
 #include "dns.h"
 
 int dns_parse_packet ( char* _buffer, int _bufflen, struct dns_message* _msg )

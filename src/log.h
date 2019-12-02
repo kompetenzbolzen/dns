@@ -1,3 +1,8 @@
+/* log.h
+ * (c) Jonas Gunz, 2019
+ * License: MIT
+ * */
+
 #pragma once
 
 #include <stdio.h>

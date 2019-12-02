@@ -1,3 +1,8 @@
+/* main.c
+ * (c) Jonas Gunz, 2019
+ * License: MIT
+ * */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
