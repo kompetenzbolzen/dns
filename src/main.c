@@ -20,6 +20,8 @@
 #include "dns.h"
 #include "log.h"
 
+#include "zonefile.h"
+
 #define PRINT_ERRNO() {printf("%s:%i %i:%s\n", __FILE__, __LINE__, errno, strerror(errno));}
 
 #define UDP_BUFFER_LEN 512
@@ -43,7 +45,10 @@ int main1(	int argc,
 		char* argv[] )
 {
 	printf("TEST MODE. NOT FUNCTIONAL\n");
-	
+
+	printf ("%i\n", string_compare (argv[1], argv[2]));
+
+	return 0;
 	/*
 	//Fuzztest the QNAME checker
 	FILE* urand = fopen ("/dev/urandom", "r");
@@ -185,14 +190,14 @@ int handle_connection (	int _socket,
 
 	if(msg.question_count > 0) {
 		char out[128];
-		qname_to_fqdn( msg.question[0].qname, 100, out, 128);
+		qname_to_fqdn( (char*) msg.question[0].qname, 100, out, 128);
 		printf("%s %i\n", out, msg.question[0].qtype);
 	}
 	
 	dns_destroy_struct ( &msg );
 
 	//Always return NXDOMAIN
-	struct dns_header head = {msg.header.id,1,OP_Q,0,0,0,0,0,RCODE_NAMEERR,0,0,0,0};
+	struct dns_header head = {msg.header.id,1,OP_Q,0,0,0,0,0,NAMEERR,0,0,0,0};
 	char ret[20];
 	int retlen = dns_construct_header ( &head, ret, 20 );
 	sendto (_socket, ret, retlen, 0, (struct sockaddr*) sockaddr_client, sockaddr_client_len);

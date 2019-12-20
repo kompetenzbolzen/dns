@@ -12,6 +12,7 @@
 //TODO remove
 #include <stdio.h>
 
+//TODO remove defines
 //Resource Records
 #define RR_A	1
 #define RR_NS	2
@@ -21,17 +22,38 @@
 #define RR_TXT	16
 #define RR_AAAA	28
 #define RR_SRV	33
+enum dns_record {
+	A	= 1,
+	NS	= 2,
+	CNAME	= 5,
+	SOA	= 6,
+	MX	= 15,
+	TXT	= 16,
+	AAAA	= 28,
+	SRV	= 33
+};
 
 //Record Classes
 #define CL_IN	1 //Internet
 #define CL_CS	2 //CSNET (Onsolete)
 #define CL_CH	3 //CHAOS
 #define CL_HS	4 //Hesiod
+enum dns_record_class {
+	IN	= 1,
+	CS	= 2,
+	CH	= 3,
+	HS	= 4
+};
 
 //OPCODES
 #define OP_Q	0 //Query
 #define OP_IQ	1 //Inverse Query
 #define OP_STAT	2 //Status request
+enum dns_opcode {
+	QUERY	= 0,
+	INVERSE	= 1,
+	STATUS	= 2
+};
 
 //Responsecode
 #define RCODE_NOERR	0
@@ -40,6 +62,14 @@
 #define RCODE_NAMEERR	3
 #define RCODE_NI	4 //Not implemented
 #define RCODE_REFUSED	5
+enum dns_responsecode {
+	NOERR	= 0,
+	FORMAT	= 1,
+	SERVFAIL= 2,
+	NAMEERR	= 3,
+	NOTIMPL	= 4,
+	REFUSED	= 5
+};
 
 #define FLIP_BYTES(u)	(((0x00FF & u) << 8) | ((0xFF00 & u) >> 8))
 
@@ -148,6 +178,7 @@ int qname_to_fqdn( char* _source, int _sourcelen, char* _sink, int _sinklen );
 
 /**
  * Check a QNAME and get length
+ * accepts only ASCII alphanumeric characters
  * returns: length of QNAME including NULL-byte at the end, < 0 on error
  * */
 int qname_check( char* _source, int _sourcelen );

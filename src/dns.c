@@ -183,6 +183,8 @@ int qname_check( char* _source, int _sourcelen )
 
 	int next_dot = 0;
 
+	//TODO questionable control flow
+	//TODO add ASCII prrintable check
 	for (int i = 0; i < _sourcelen; i++) {
 		if ( i == next_dot ) {
 			if (_source[i]) { //Not last dot
@@ -190,7 +192,7 @@ int qname_check( char* _source, int _sourcelen )
 			} else { //last dot
 				return i+1;
 			}
-		} else if (!_source[i]) { //Invalid qname
+		} else if (!_source[i]) { //Unexpected \0
 			return -1;
 		}
 	}
