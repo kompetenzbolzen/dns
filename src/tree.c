@@ -37,9 +37,27 @@ int tree_balance ( struct tree_node** _root )
 	return 1;
 }
 
-int tree_destroy ( struct tree_node** _root )
+int tree_destroy ( struct tree_node** _root, uint8_t _options )
 {
-	return 1;
+	while(*_root)
+	{
+		struct tree_node** node = _root;
+		
+		while( (*node)->above || (*node)->below )
+			node= (*node)->above ? & (*node)->above : & (*node)->below ;
+	
+		printf( "%s\n", (*node)->data );
+
+		if (_options & _TREE_FREE_KEY)
+			free( (*node)->data );
+		if (_options & _TREE_FREE_KEY)
+			free( (*node)->key );
+		
+		free ( *node );
+		*node = NULL;
+	}
+
+	return 0;
 }
 
 int string_compare ( char* _1, char* _2 )
@@ -88,7 +106,7 @@ void* tree_get ( struct  tree_node** _root, char* _query )
 		}
 	}
 
-	return *node ? (*node)->key : NULL;
+	return *node ? (*node)->data : NULL;
 
 	return 0;
 }
