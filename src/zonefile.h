@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "tree.h"
+
 struct record_entry {
 	char* name;
 	uint32_t ttl;
@@ -30,18 +32,3 @@ int zonefile_parse ( char* _filename, struct record_node* _dns_zone );
 
 int zonefile_query ( char* _hostname, struct record_entry* _entry );
 
-static int tree_insert ( struct record_node* _root, struct record_entry* _node );
-
-static int tree_balance ( struct record_node* _root );
-
-static struct record_entry* tree_get ( struct record_node* _root, char* _query );
-
-static int tree_destroy ( struct record_node* _root );
-
-/**
- * returns:
- * 0  :: _1 == _2
- * -1 :: _1 <  _2
- * +1 :: _1 >  _2
- * */
-int string_compare ( char* _1, char* _2 );
