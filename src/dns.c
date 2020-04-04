@@ -73,11 +73,11 @@ int dns_parse_packet ( char* _buffer, int _bufflen, struct dns_message* _msg )
 	_msg->header.additional_count	= (*((uint8_t*) (_buffer + 10)) << 8) | *((uint8_t*) (_buffer + 11));
 
 	//TODO remove
-	printf("ANSWER %i\n", _msg->header.answer_count);
+	/*printf("ANSWER %i\n", _msg->header.answer_count);
 	printf("QUESTI %i\n", _msg->header.question_count);
 	printf("AUTHOR %i\n", _msg->header.authorative_count);
 	printf("ADDITI %i\n", _msg->header.additional_count);
-
+*/
 	//Check for sensible QD, AN, NS and ARCOUNTS before massive memory allocation
 	if(	_msg->header.question_count > 4 ||
 		_msg->header.answer_count > 32 ||
