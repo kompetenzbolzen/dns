@@ -8,6 +8,7 @@
 #include <sys/types.h>
 
 #include "log.h"
+#include "server.h"
 
 int main(int argc, char* argv[])
 {
