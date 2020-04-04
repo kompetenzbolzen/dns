@@ -93,15 +93,15 @@ int handle_connection (	int _socket,
 		qname_to_fqdn( (char*) msg.question[0].qname, 100, out, 128);
 		printf("%s %i\n", out, msg.question[0].qtype);
 	}
-	
-	dns_destroy_struct ( &msg );
 
 	//Always return NXDOMAIN
 	struct dns_header head = {msg.header.id,1,OP_Q,0,0,0,0,0,NAMEERR,0,0,0,0};
 	char ret[20];
 	int retlen = dns_construct_header ( &head, ret, 20 );
 	sendto (_socket, ret, retlen, 0, (struct sockaddr*) sockaddr_client, sockaddr_client_len);
-	
+
+	dns_destroy_struct ( &msg );
+
 	return 0;
 }
 
