@@ -41,3 +41,6 @@ clean:
 	@echo [RM] $(BUILDDIR)/$(OUTPUT)
 	@rm -df  $(OBJ)
 	@rm -Rdf $(BUILDDIR) $(OBJECTDIR)
+
+.PHONY: all
+all: clean build
