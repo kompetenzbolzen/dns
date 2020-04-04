@@ -1,6 +1,6 @@
 CC              = clang
 CFLAGS          = -Wall
-LDFLAGS         = 
+LDFLAGS         = -lm
 BUILDDIR        = build
 SOURCEDIR       = src
 OBJECTDIR       = obj
@@ -18,7 +18,7 @@ build: dir $(OBJ)
 debug: CFLAGS += -g -D _DEBUG
 debug: build;
 
-test: LDFLAGS += -Wl,-etest_main
+test: CFLAGS += -D _TEST
 test: debug
 	$(BUILDDIR)/$(OUTPUT)
 
