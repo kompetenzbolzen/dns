@@ -24,6 +24,8 @@ int test_tree ();
 
 int test_dns_parsing ();
 
-int test_dns_parsing_fuzz();
+int test_dns_qname_fuzz();
+
+int test_dns_message_fuzz();
 
 #endif
