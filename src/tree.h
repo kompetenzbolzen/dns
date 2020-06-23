@@ -43,6 +43,8 @@
 //TODO remove
 #include <stdio.h>
 
+#include "log.h"
+
 #define _TREE_FREE_DATA 0x01
 #define _TREE_FREE_KEY	0x02
 

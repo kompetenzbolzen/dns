@@ -10,6 +10,10 @@
 #include "log.h"
 #include "server.h"
 
+#ifdef _TEST
+#include "test.h"
+#endif
+
 int main(int argc, char* argv[])
 {
 	//CMD line arg parsing goes in here

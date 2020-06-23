@@ -9,6 +9,7 @@
 
 void run_test ()
 {
+	log_init_stdout(_LOG_DEBUG);
 	//Space for temporary tests
 
 	//tree_balanced_insert(NULL, NULL, NULL, 15 );
@@ -21,20 +22,45 @@ void run_test ()
 
 int test_tree ()
 {
-	printf("\n-> test_tree()\n======\n\n");
+	unsigned const int len = pow ( 'z' - 'a' + 1, 2);
+	unsigned int len_cnt = 0;
+	char* keys[len];
+	char* data[len];
 
 	struct tree_node* root = NULL;
 
-	tree_insert ( &root, "eins", "Test eins" );
-	tree_insert ( &root, "zwei", "Test zwei" );
+	printf("\n-> test_tree()\n======\n\n");
+
+	for ( char i = 'a'; i <= 'z'; i++ ) {
+		for ( char j = 'a'; j <= 'z'; j++ ) {
+			keys[len_cnt] = malloc (3);
+			keys[len_cnt][0] = i;
+			keys[len_cnt][1] = j;
+			keys[len_cnt][2] = 0;
+
+			data[len_cnt] = malloc(10);
+			snprintf( data[len_cnt], 10, "N%i", len_cnt );
+
+			len_cnt ++;
+		}
+	}
+
+	printf("len_cnt %i\n", len_cnt);
+
+	tree_balanced_insert( &root, data, keys, len );
 
 	printf("After Insert\n");
 
-	printf("%s\n", tree_get(&root, "zwei"));
+	printf("%s\n", tree_get(&root, "aa"));
+
+	for ( int i = 0; i < len; i++ ) {
+		if ( ! tree_get(&root, keys[i]) )
+			LOGPRINTF(_LOG_WARNING, "%s not found in tree", keys[i]);
+	}
 
 	printf("After Get\n");
 
-	tree_destroy (&root,0);
+	tree_destroy (&root, _TREE_FREE_DATA | _TREE_FREE_KEY);
 
 	printf("After destroy\n");
 
@@ -103,7 +129,7 @@ int test_dns_qname_fuzz()
 	}
 
 	float valid_percent = (float)valid_cnt / (float)limit * 100;
-	printf("# of valid qnames in random data: %i / %i = %f%%\n", valid_cnt, limit, valid_percent);
+	printf("# of valid qnames in random data: %lu / %lu = %f%%\n", valid_cnt, limit, valid_percent);
 
 	return 0;
 }
@@ -130,7 +156,7 @@ int test_dns_message_fuzz()
 	}
 
 	float valid_percent = (float)valid_cnt / (float)limit * 100;
-	printf("# of valid messages in random data: %i / %i = %f%%\n", valid_cnt, limit, valid_percent);
+	printf("# of valid messages in random data: %lu / %lu = %f%%\n", valid_cnt, limit, valid_percent);
 
 	return 0;
 }
