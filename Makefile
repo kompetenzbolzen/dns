@@ -19,7 +19,7 @@ debug: CFLAGS += -g -D _DEBUG
 debug: build;
 
 test: CFLAGS += -D _TEST
-test: debug
+test: clean debug
 	$(BUILDDIR)/$(OUTPUT)
 
 dir:
