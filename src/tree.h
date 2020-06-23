@@ -10,6 +10,11 @@
  *
  * The char* _key is used as a primary key, the tree can
  * carry any generic payload in void* _data.
+ * _key is case INsensitive.
+ *
+ * tree_balanced_insert tries to create an optimally balanced
+ * tree from the given dataset. Only works correctly on an empty
+ * tree.
  *
  * The root does not need special initialization.
  *
@@ -39,6 +44,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+#include <string.h>
 
 //TODO remove
 #include <stdio.h>
@@ -61,7 +67,7 @@ int tree_insert	( struct tree_node** _root, char* _key, void* _data );
  * Inserts the given list into the tree, achieving optimal depth.
  * Expects a sorted list.
  * */
-int tree_balanced_insert( struct tree_node** _root, void*  _data[], char* _key[], unsigned int _len);
+int tree_balanced_insert ( struct tree_node** _root, void*  _data[], char* _key[], unsigned int _len);
 
 /**
  * Returns (void*)node->data on success, NULL on failure

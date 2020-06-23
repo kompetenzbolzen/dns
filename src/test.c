@@ -54,8 +54,8 @@ int test_tree ()
 	printf("%s\n", tree_get(&root, "aa"));
 
 	for ( int i = 0; i < len; i++ ) {
-		if ( ! tree_get(&root, keys[i]) )
-			LOGPRINTF(_LOG_WARNING, "%s not found in tree", keys[i]);
+		if ( strcmp( tree_get(&root, keys[i]), data[i] ) )
+			LOGPRINTF(_LOG_WARNING, "Data does not match for %s", keys[i]);
 	}
 
 	printf("After Get\n");
