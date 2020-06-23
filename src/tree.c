@@ -25,7 +25,8 @@ int tree_insert ( struct tree_node** _root, char* _key, void* _data )
 
 	*node = malloc (sizeof(typeof(**node)));
 	if( ! *node )
-		return 1;
+		return 2;
+	memset ( *node, 0, sizeof(typeof(**node)) );
 
 	(*node)->key  = _key;
 	(*node)->data = _data;
