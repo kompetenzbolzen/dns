@@ -6,6 +6,7 @@
 
 #include "tree.h"
 
+static int string_compare ( char* _1, char* _2 );
 
 int tree_insert ( struct tree_node** _root, char* _key, void* _data )
 {
@@ -60,7 +61,7 @@ int tree_destroy ( struct tree_node** _root, uint8_t _options )
 	return 0;
 }
 
-int string_compare ( char* _1, char* _2 )
+static int string_compare ( char* _1, char* _2 )
 {
 	if ( !_1 || !_2 )
 		return 99;
@@ -89,6 +90,7 @@ int string_compare ( char* _1, char* _2 )
 		return -1;
 
 	//TODO WARN may reach end of non-void function
+	return 99;
 }
 
 void* tree_get ( struct  tree_node** _root, char* _query )
