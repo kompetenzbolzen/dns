@@ -24,7 +24,7 @@ int log_init_stdout(unsigned int _verbosity)
 {
 	log_loglevel = _verbosity;// > _LOG_DEBUG ? _LOG_DEBUG : _verbosity;
 	log_fd = STDIN_FILENO;
-	
+
 	LOGPRINTF(0, "=== RESTART ===");
 	LOGPRINTF(0, "Verbosity: %i", _verbosity);
 

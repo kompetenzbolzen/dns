@@ -10,7 +10,7 @@
 void run_test ()
 {
 	//Space for temporary tests
-	
+
 	//tree_balanced_insert(NULL, NULL, NULL, 15 );
 	//Normal tests
 	test_tree();
@@ -24,10 +24,10 @@ int test_tree ()
 	printf("\n-> test_tree()\n======\n\n");
 
 	struct tree_node* root = NULL;
-	
+
 	tree_insert ( &root, "eins", "Test eins" );
 	tree_insert ( &root, "zwei", "Test zwei" );
-	
+
 	printf("After Insert\n");
 
 	printf("%s\n", tree_get(&root, "zwei"));

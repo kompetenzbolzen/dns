@@ -11,7 +11,7 @@ int dns_construct_header ( struct dns_header* _header, char* _buffer, int _buffl
 		return -1;
 
 	*((uint16_t*)_buffer) = _header->id; //Since only copied, no flipping necessary
-	_buffer[2] = 
+	_buffer[2] =
 		((_header->QR & 0x01) << 7) |
 		((_header->OPCODE & 0x0F) << 3) |
 		((_header->AA & 0x01) << 2) |

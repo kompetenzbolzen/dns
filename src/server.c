@@ -109,7 +109,7 @@ void signal_term ( ) {
 	printf( "Recieved Signal. Terminating active connections and closing socket\n" );
 
 	//terminate all children >:)
-	kill ( 0, SIGTERM ); 
+	kill ( 0, SIGTERM );
 
 	shutdown ( sock_server, SHUT_RDWR );
 	close ( sock_server );

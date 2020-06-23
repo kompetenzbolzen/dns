@@ -18,6 +18,6 @@ int main(int argc, char* argv[])
 #else
 	run_dns_server();
 #endif
-	
+
 }
 
