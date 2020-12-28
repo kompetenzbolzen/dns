@@ -18,10 +18,10 @@
 #define _LOG_NOTE 	3
 #define _LOG_DEBUG 	4
 
-unsigned int log_loglevel;
-int log_fd;
+extern unsigned int log_loglevel;
+extern int log_fd;
 
-const char* log_loglevel_str[5];
+extern const char* log_loglevel_str[5];
 
 #define LOGPRINTF(l,...) {\
 	if((l) <= log_loglevel){\
