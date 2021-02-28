@@ -5,7 +5,7 @@
 
 #include "server.h"
 
-void run_dns_server ( void )
+void run_dns_server ( server_config_t* _config )
 {
 	int		ret;
 	struct		sockaddr_in sock_server_addr;
@@ -21,6 +21,8 @@ void run_dns_server ( void )
 
 	log_init_stdout ( _LOG_DEBUG );
 
+	LOGPRINTF(_LOG_NOTE, "Initializing DNS Server on %s:%i", _config->bind_ip, _config->bind_port);
+
 	sock_server = socket ( AF_INET, SOCK_DGRAM, 0 );
 	if ( sock_server == -1 ) {
 		LOGPRINTF(_LOG_ERROR, "socket() failed");
@@ -29,8 +31,8 @@ void run_dns_server ( void )
 
 	memset( &sock_server_addr, '\0', sizeof(struct sockaddr_in) );
 	sock_server_addr.sin_family = AF_INET;
-	sock_server_addr.sin_port   = htons( 53 );
-	ret = inet_aton ( "0.0.0.0", & sock_server_addr.sin_addr );
+	sock_server_addr.sin_port   = htons( _config->bind_port );
+	ret = inet_aton ( _config->bind_ip, & sock_server_addr.sin_addr );
 	if( ret == 0 ) { //Error on 0, no errno!
 		LOGPRINTF(_LOG_NOTE, "inet_aton(): Invalid bind IP\n" );
 		exit ( 1 );
@@ -43,6 +45,8 @@ void run_dns_server ( void )
 		LOGPRINTF(_LOG_ERROR, "bind() failed");
 		exit ( errno );
 	}
+
+	LOGPRINTF(_LOG_NOTE, "Done!");
 
 	while( 1 )
 	{
@@ -95,10 +99,16 @@ int handle_connection (	int _socket,
 	}
 
 	//Always return NXDOMAIN
-	struct dns_header head = {msg.header.id,1,OP_Q,0,0,0,0,0,NAMEERR,0,0,0,0};
-	char ret[20];
-	int retlen = dns_construct_header ( &head, ret, 20 );
-	sendto (_socket, ret, retlen, 0, (struct sockaddr*) sockaddr_client, sockaddr_client_len);
+
+	struct dns_question quest = & msg.question[0];
+
+	struct dns_header head = {msg.header.id,1,OP_Q,0,0,0,0,0,dns_responsecode.NOERR,0,0,0,0};
+	struct dns_answer answ = {quest->qname, quest->qname_len, }
+
+	char ret[512];
+	int hlen = dns_construct_header ( ret, 512, &head );
+	int alen = dns_construct_answer ( ret + hlen, 512-hlen, &answer );
+	sendto (_socket, ret, hlen + alen, 0, (struct sockaddr*) sockaddr_client, sockaddr_client_len);
 
 	dns_destroy_struct ( &msg );
 

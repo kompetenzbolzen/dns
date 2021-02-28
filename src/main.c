@@ -20,7 +20,11 @@ int main(int argc, char* argv[])
 #ifdef _TEST
 	run_test();
 #else
-	run_dns_server();
+	server_config_t config;
+	config.bind_ip = "0.0.0.0";
+	config.bind_port = 53;
+
+	run_dns_server( &config );
 #endif
 
 }

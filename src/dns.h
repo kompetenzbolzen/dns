@@ -91,8 +91,9 @@ struct dns_answer;
 /**
  * DNS Message struct
  *
- * A initialized instance is only valid as long as
- * the buffer used to create it remains unchanged
+ * An initialized instance is only valid as long as
+ * the buffer used to create it remains unchanged as
+ * some values are referenced, not copied.
  * */
 struct dns_message;
 
@@ -116,12 +117,16 @@ struct dns_header {
 
 struct dns_question {
 	const char* qname;
+	int qname_len;
+
 	uint16_t qtype;
 	uint16_t qclass;
 };
 
 struct dns_answer {
-	char* name; //in qname format
+	char* qname; //in qname format
+	int qname_len;
+
 	uint16_t type;
 	uint16_t class;
 	uint32_t ttl;
@@ -140,9 +145,28 @@ struct dns_message {
 };
 
 int dns_construct_header (
-		struct	dns_header* _header,
 		char*	_buffer,
-		int	_bufflen
+		int	_bufflen,
+		struct	dns_header* _header
+		);
+
+int dns_construct_answer (
+		char*	_buffer,
+		int	_bufflen,
+		struct	dns_answer* _answer
+		);
+
+int dns_construct_questoin (
+		char*	_buffer,
+		int	_bufflen,
+		struct	dns_question* _question
+		);
+
+// Question and answer count come from header
+int dns_construct_packet (
+		char*	_buffer,
+		int	_bufflen,
+		struct dns_message* _message
 		);
 
 /**

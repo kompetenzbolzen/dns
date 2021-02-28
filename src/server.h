@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <stdint.h>
 #include <sys/types.h>
 
 #include <sys/socket.h>
@@ -24,9 +25,14 @@
 
 #define UDP_BUFFER_LEN 512
 
+typedef struct server_config {
+	char* bind_ip;
+	uint16_t bind_port;
+} server_config_t;
+
 static int sock_server;
 
-void run_dns_server ( void );
+void run_dns_server ( server_config_t* _config );
 
 int handle_connection (	int _socket,
 			struct sockaddr_in *sockaddr_client,

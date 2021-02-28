@@ -5,7 +5,7 @@
 
 #include "dns.h"
 
-int dns_construct_header ( struct dns_header* _header, char* _buffer, int _bufflen )
+int dns_construct_header ( char* _buffer, int _bufflen, struct dns_header* _header )
 {
 	if ( !_buffer || !_header || _bufflen < 12 )
 		return -1;
@@ -28,6 +28,72 @@ int dns_construct_header ( struct dns_header* _header, char* _buffer, int _buffl
 
 	return 12;
 }
+
+int dns_construct_answer (
+		char*	_buffer,
+		int	_bufflen,
+		struct	dns_answer* _answer
+		) {
+	int ret = 0;
+
+	if ( !_buffer || _bufflen <= 0 || !_answer )
+		return -1;
+
+	// Check buffer size
+	if ( _answer->qname_len + _answer->rdlength + 10 > _bufflen )
+		return -1;
+
+	memcpy( _buffer, _answer->qname, _answer->qname_len );
+	ret += _answer->qname_len;
+
+	*((uint16_t*)(_buffer + ret + 0 )) = FLIP_BYTES(_answer->type);
+	*((uint16_t*)(_buffer + ret + 2 )) = FLIP_BYTES(_answer->class);
+	*((uint16_t*)(_buffer + ret + 4 )) = FLIP_BYTES((uint16_t)((_answer->ttl << 16) & 0xffff));
+	*((uint16_t*)(_buffer + ret + 6 )) = FLIP_BYTES((uint16_t)(_answer->ttl & 0xffff));
+	*((uint16_t*)(_buffer + ret + 8 )) = FLIP_BYTES(_answer->rdlength);
+	ret += 10;
+
+	memcpy( _buffer + ret, _answer->rdata, _answer->rdlength );
+	ret += _answer->rdlength;
+
+	return ret;
+}
+
+int dns_construct_questoin (
+		char*	_buffer,
+		int	_bufflen,
+		struct	dns_question* _question
+		) {
+	//TODO Test
+	int ret = 0;
+
+	if ( !_buffer || _bufflen <= 0 || !_question )
+		return -1;
+
+	// Check buffer size
+	if ( _question->qname_len + 4 > _bufflen )
+		return -1;
+
+	memcpy( _buffer, _question->qname, _question->qname_len );
+	ret += _question->qname_len;
+
+	*((uint16_t*)(_buffer + ret + 0 )) = FLIP_BYTES(_question->qtype);
+	*((uint16_t*)(_buffer + ret + 2 )) = FLIP_BYTES(_question->qclass);
+	ret += 4;
+
+	return ret;
+}
+
+
+// Question and answer count come from header
+int dns_construct_packet (
+		char*	_buffer,
+		int	_bufflen,
+		struct dns_message* _message
+		) {
+	return -1;
+}
+
 
 int dns_destroy_struct ( struct dns_message* _msg )
 {
@@ -77,7 +143,8 @@ int dns_parse_packet ( char* _buffer, int _bufflen, struct dns_message* _msg )
 	printf("QUESTI %i\n", _msg->header.question_count);
 	printf("AUTHOR %i\n", _msg->header.authorative_count);
 	printf("ADDITI %i\n", _msg->header.additional_count);
-*/
+	*/
+
 	//Check for sensible QD, AN, NS and ARCOUNTS before massive memory allocation
 	if(	_msg->header.question_count > 4 ||
 		_msg->header.answer_count > 32 ||
@@ -97,6 +164,8 @@ int dns_parse_packet ( char* _buffer, int _bufflen, struct dns_message* _msg )
 		return 1;
 
 	int ptr = 12; //byte counter
+
+	// TODO refactor
 	for (int i = 0; i < _msg->question_count; i++) {
 		int qname_len = qname_check ( (_buffer + ptr), _bufflen - ptr);
 
@@ -104,6 +173,7 @@ int dns_parse_packet ( char* _buffer, int _bufflen, struct dns_message* _msg )
 			return 1;
 
 		_msg->question[i].qname = _buffer + ptr;
+		_msg->question[i].qname_len = qname_len;
 		ptr += qname_len;
 
 		if( ptr >= (_bufflen - 4) ) //Out of bounds check
