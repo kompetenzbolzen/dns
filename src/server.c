@@ -95,19 +95,19 @@ int handle_connection (	int _socket,
 	if(msg.question_count > 0) {
 		char out[128];
 		qname_to_fqdn( (char*) msg.question[0].qname, 100, out, 128);
-		printf("%s %i\n", out, msg.question[0].qtype);
+		LOGPRINTF(_LOG_DEBUG, "Request for %s QTYPE %i", out, msg.question[0].qtype);
 	}
 
 	//Always return NXDOMAIN
 
-	struct dns_question quest = & msg.question[0];
+	struct dns_question* quest = & msg.question[0];
 
-	struct dns_header head = {msg.header.id,1,OP_Q,0,0,0,0,0,dns_responsecode.NOERR,0,0,0,0};
-	struct dns_answer answ = {quest->qname, quest->qname_len, }
+	struct dns_header head = {msg.header.id,1,OP_Q,0,0,0,0,0,RCODE_NOERR,0,1,0,0};
+	struct dns_answer answ = {quest->qname, quest->qname_len, RR_A, CL_IN, 69, 4, "aaa" };
 
 	char ret[512];
 	int hlen = dns_construct_header ( ret, 512, &head );
-	int alen = dns_construct_answer ( ret + hlen, 512-hlen, &answer );
+	int alen = dns_construct_answer ( ret + hlen, 512-hlen, &answ );
 	sendto (_socket, ret, hlen + alen, 0, (struct sockaddr*) sockaddr_client, sockaddr_client_len);
 
 	dns_destroy_struct ( &msg );

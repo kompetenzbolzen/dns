@@ -124,7 +124,7 @@ struct dns_question {
 };
 
 struct dns_answer {
-	char* qname; //in qname format
+	const char* qname; //in qname format
 	int qname_len;
 
 	uint16_t type;
