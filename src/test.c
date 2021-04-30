@@ -12,12 +12,22 @@ void run_test ()
 	log_init_stdout(_LOG_DEBUG);
 	//Space for temporary tests
 
+	test_database();
+
+	return;
 	//tree_balanced_insert(NULL, NULL, NULL, 15 );
+	//
 	//Normal tests
-	test_tree();
-	//test_dns_parsing();
-	test_dns_message_fuzz();
-	test_dns_qname_fuzz();
+	
+	int ret = 0;
+
+	ret += test_tree();
+	ret += test_dns_parsing();
+	ret += test_dns_message_fuzz();
+	ret += test_dns_qname_fuzz();
+	ret += test_database();
+
+	exit(ret);
 }
 
 int test_tree ()
@@ -47,11 +57,11 @@ int test_tree ()
 
 	printf("len_cnt %i\n", len_cnt);
 
-	tree_balanced_insert( &root, data, keys, len );
+	tree_balanced_insert( &root, (void**)data, keys, len );
 
 	printf("After Insert\n");
 
-	printf("%s\n", tree_get(&root, "aa"));
+	printf("%s\n", (char*)tree_get(&root, "aa"));
 
 	for ( int i = 0; i < len; i++ ) {
 		if ( strcmp( tree_get(&root, keys[i]), data[i] ) )
@@ -160,4 +170,25 @@ int test_dns_message_fuzz()
 
 	return 0;
 }
+
+int test_database(){
+	struct database db;
+	struct database_rdata rdata;
+
+	if ( database_populate( &db, "nofile" ) )
+		return 1;
+
+	printf("Populated\n");
+
+	char* qname = malloc(32);
+	int len = fqdn_to_qname( "test.example.com.", 18, qname, 32 );
+
+	int ret = database_query ( &rdata, &db, qname, len, 1, 1 );
+	printf("Return code %i, rdlen %i\n", ret, rdata.rdlen);
+
+	database_destroy( &db );
+
+	return 0;
+}
+
 #endif

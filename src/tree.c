@@ -6,7 +6,7 @@
 
 #include "tree.h"
 
-static int string_compare ( char* _1, char* _2 );
+static int string_compare ( const char* _1, const char* _2 );
 
 /**
  * ignore-case alphabetical string compare
@@ -15,7 +15,7 @@ static int string_compare ( char* _1, char* _2 );
  * -1 :: _1 <  _2
  * +1 :: _1 >  _2
  * */
-static int string_compare ( char* _1, char* _2 )
+static int string_compare ( const char* _1, const char* _2 )
 {
 	if ( !_1 || !_2 )
 		return 99;
@@ -144,7 +144,7 @@ int tree_destroy ( struct tree_node** _root, uint8_t _options )
 	return 0;
 }
 
-void* tree_get ( struct  tree_node** _root, char* _query )
+void* tree_get ( struct  tree_node** _root, const char* _query )
 {
 	struct tree_node** node = _root;
 

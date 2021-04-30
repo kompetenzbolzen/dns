@@ -72,6 +72,6 @@ int tree_balanced_insert ( struct tree_node** _root, void*  _data[], char* _key[
 /**
  * Returns (void*)node->data on success, NULL on failure
  * */
-void* tree_get	( struct tree_node** _root, char* _query );
+void* tree_get	( struct tree_node** _root, const char* _query );
 
 int tree_destroy( struct tree_node** _root, uint8_t _options );

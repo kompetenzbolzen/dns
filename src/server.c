@@ -12,6 +12,8 @@ void run_dns_server ( server_config_t* _config )
 
 	char recv_buffer[ UDP_BUFFER_LEN ];
 
+	struct database zone_db;
+
 	signal ( SIGTERM, signal_term );
 	signal ( SIGINT,  signal_term );
 
@@ -20,6 +22,11 @@ void run_dns_server ( server_config_t* _config )
 	signal (SIGCHLD, SIG_IGN);
 
 	log_init_stdout ( _LOG_DEBUG );
+
+	if ( (ret = database_populate ( &zone_db, "/nofile" )) ) {
+		LOGPRINTF(_LOG_ERROR, "Failed to populate database from zonefile");
+		exit(1);
+	}
 
 	LOGPRINTF(_LOG_NOTE, "Initializing DNS Server on %s:%i", _config->bind_ip, _config->bind_port);
 
@@ -73,7 +80,8 @@ void run_dns_server ( server_config_t* _config )
 				&sock_client_addr,
 				sock_client_addr_len,
 				recv_buffer,
-				ret );
+				ret,
+				&zone_db );
 	}
 
 	close( sock_server );
@@ -83,7 +91,8 @@ int handle_connection (	int _socket,
 			struct sockaddr_in *sockaddr_client,
 			socklen_t sockaddr_client_len,
 			char* _buffer,
-			int _bufflen )
+			int _bufflen,
+			struct database* _zone_db )
 {
 	struct dns_message msg;
 
@@ -98,12 +107,21 @@ int handle_connection (	int _socket,
 		LOGPRINTF(_LOG_DEBUG, "Request for %s QTYPE %i", out, msg.question[0].qtype);
 	}
 
-	//Always return NXDOMAIN
+	// Only handles first request
+	// TODO heavy refactoring. major POC vibe
 
+	struct database_rdata rdata;
 	struct dns_question* quest = & msg.question[0];
 
-	struct dns_header head = {msg.header.id,1,OP_Q,0,0,0,0,0,RCODE_NOERR,0,1,0,0};
-	struct dns_answer answ = {quest->qname, quest->qname_len, RR_A, CL_IN, 69, 4, "aaa" };
+	int db_ret = database_query( &rdata, _zone_db, quest->qname, quest->qname_len, quest->qtype, quest->qclass );
+	if (db_ret) {
+
+		LOGPRINTF(_LOG_DEBUG, "DB Query exited with code %i", db_ret);
+		return 1;
+	}
+
+	struct dns_header head = {msg.header.id,1,OP_QUERY,0,0,0,0,0,RCODE_NOERR,0,1,0,0};
+	struct dns_answer answ = {quest->qname, quest->qname_len, RR_A, CL_IN, rdata.ttl, rdata.rdlen, rdata.rdata };
 
 	char ret[512];
 	int hlen = dns_construct_header ( ret, 512, &head );

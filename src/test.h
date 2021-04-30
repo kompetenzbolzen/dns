@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include "tree.h"
 #include "dns.h"
+#include "database.h"
 
 /*
  * TODO
@@ -27,5 +28,7 @@ int test_dns_parsing ();
 int test_dns_qname_fuzz();
 
 int test_dns_message_fuzz();
+
+int test_database();
 
 #endif

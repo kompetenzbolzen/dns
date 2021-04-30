@@ -35,7 +35,7 @@ enum dns_record {
 
 //Record Classes
 #define CL_IN	1 //Internet
-#define CL_CS	2 //CSNET (Onsolete)
+#define CL_CS	2 //CSNET (Obsolete)
 #define CL_CH	3 //CHAOS
 #define CL_HS	4 //Hesiod
 enum dns_record_class {
@@ -46,9 +46,9 @@ enum dns_record_class {
 };
 
 //OPCODES
-#define OP_Q	0 //Query
-#define OP_IQ	1 //Inverse Query
-#define OP_STAT	2 //Status request
+#define OP_QUERY	0 //Query
+#define OP_IQUERY	1 //Inverse Query
+#define OP_STATUS	2 //Status request
 enum dns_opcode {
 	QUERY	= 0,
 	INVERSE	= 1,
@@ -60,7 +60,7 @@ enum dns_opcode {
 #define RCODE_FORMAT	1
 #define RCODE_SERVFAIL	2
 #define RCODE_NAMEERR	3
-#define RCODE_NI	4 //Not implemented
+#define RCODE_NOTIMPL	4 //Not implemented
 #define RCODE_REFUSED	5
 enum dns_responsecode {
 	NOERR	= 0,

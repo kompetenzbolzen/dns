@@ -22,6 +22,7 @@
 
 #include "dns.h"
 #include "log.h"
+#include "database.h"
 
 #define UDP_BUFFER_LEN 512
 
@@ -38,6 +39,7 @@ int handle_connection (	int _socket,
 			struct sockaddr_in *sockaddr_client,
 			socklen_t sockaddr_client_len,
 			char* _buffer,
-			int _bufflen );
+			int _bufflen,
+			struct database* _zone_db );
 
 void signal_term ( );
