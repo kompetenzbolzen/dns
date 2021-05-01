@@ -33,6 +33,8 @@ typedef struct server_config {
 
 static int sock_server;
 
+int init_socket ( );
+
 void run_dns_server ( server_config_t* _config );
 
 int handle_connection (	int _socket,

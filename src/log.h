@@ -13,15 +13,16 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#define _LOG_ERROR 	1
-#define _LOG_WARNING 	2
-#define _LOG_NOTE 	3
-#define _LOG_DEBUG 	4
+#define _LOG_ERRNO	1
+#define _LOG_ERROR	2
+#define _LOG_WARNING	3
+#define _LOG_NOTE	4
+#define _LOG_DEBUG	5
 
 extern unsigned int log_loglevel;
 extern int log_fd;
 
-extern const char* log_loglevel_str[5];
+extern const char* log_loglevel_str[6];
 
 #define LOGPRINTF(l,...) {\
 	if((l) <= log_loglevel){\
@@ -30,8 +31,8 @@ extern const char* log_loglevel_str[5];
 		char* date = asctime(tma);\
 		date[strlen(date) - 1] = '\0';\
 		printf("[%s] %s: ", date,  log_loglevel_str[(l)]);\
-		if((l) == _LOG_ERROR)\
-			printf("%s:", strerror(errno));\
+		if((l) == _LOG_ERRNO)\
+			printf("%s: ", strerror(errno));\
 		if((l) == _LOG_DEBUG)\
 			printf("%s:%d: ", __FILE__, __LINE__);\
 		printf(__VA_ARGS__);\
@@ -39,6 +40,15 @@ extern const char* log_loglevel_str[5];
 		fsync(STDOUT_FILENO);\
 	}\
 }
+
+// DEBUG Wrapper around LOGPRINTF wich is only compiled in in
+// _DEBUG mode for performance
+
+#ifdef _DEBUG
+#define DEBUG(...) { LOGPRINTF(_LOG_DEBUG, __VA_ARGS__); }
+#else
+#define DEBUG(...) { }
+#endif
 
 
 /**

@@ -12,9 +12,6 @@ void run_test ()
 	log_init_stdout(_LOG_DEBUG);
 	//Space for temporary tests
 
-	test_database();
-
-	return;
 	//tree_balanced_insert(NULL, NULL, NULL, 15 );
 	//
 	//Normal tests

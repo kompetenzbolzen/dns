@@ -24,7 +24,7 @@ void run_dns_server ( server_config_t* _config )
 	log_init_stdout ( _LOG_DEBUG );
 
 	if ( (ret = database_populate ( &zone_db, "/nofile" )) ) {
-		LOGPRINTF(_LOG_ERROR, "Failed to populate database from zonefile");
+		LOGPRINTF(_LOG_ERRNO, "Failed to populate database from zonefile");
 		exit(1);
 	}
 
@@ -32,7 +32,7 @@ void run_dns_server ( server_config_t* _config )
 
 	sock_server = socket ( AF_INET, SOCK_DGRAM, 0 );
 	if ( sock_server == -1 ) {
-		LOGPRINTF(_LOG_ERROR, "socket() failed");
+		LOGPRINTF(_LOG_ERRNO, "socket() failed");
 		exit ( errno );
 	}
 
@@ -41,7 +41,7 @@ void run_dns_server ( server_config_t* _config )
 	sock_server_addr.sin_port   = htons( _config->bind_port );
 	ret = inet_aton ( _config->bind_ip, & sock_server_addr.sin_addr );
 	if( ret == 0 ) { //Error on 0, no errno!
-		LOGPRINTF(_LOG_NOTE, "inet_aton(): Invalid bind IP\n" );
+		LOGPRINTF(_LOG_ERROR, "inet_aton(): Invalid bind IP\n" );
 		exit ( 1 );
 	}
 
@@ -49,7 +49,7 @@ void run_dns_server ( server_config_t* _config )
 			(struct sockaddr*) &sock_server_addr,
 			sizeof(struct sockaddr_in) );
 	if ( ret == -1 ) {
-		LOGPRINTF(_LOG_ERROR, "bind() failed");
+		LOGPRINTF(_LOG_ERRNO, "bind() failed");
 		exit ( errno );
 	}
 
@@ -70,7 +70,7 @@ void run_dns_server ( server_config_t* _config )
 				(struct sockaddr*) &sock_client_addr,
 				&sock_client_addr_len );
 		if ( ret == -1 ) {
-			LOGPRINTF( _LOG_ERROR, "recvfrom()");
+			LOGPRINTF( _LOG_ERRNO, "recvfrom()");
 			exit ( errno );
 		}
 

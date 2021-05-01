@@ -8,8 +8,9 @@
 unsigned int log_loglevel;
 int log_fd;
 
-const char* log_loglevel_str[5] = {
+const char* log_loglevel_str[6] = {
 	"---",
+	"ERROR",
 	"ERROR",
 	"WARNING",
 	"NOTE",

@@ -26,8 +26,10 @@ int database_populate (
 	struct database* _database,
 	char* _zonefile
 ) {
-	if ( database_init( _database ) )
+	if ( database_init( _database ) ) {
+		LOGPRINTF(_LOG_ERROR, "Failed to initialize database.");
 		return 1;
+	}
 
 	// TODO parsing
 	
@@ -45,6 +47,8 @@ int database_populate (
 	*((uint32_t*)(data+6)) = 0x45454545;
 	
 	tree_insert( &_database->zone[0][0], qname, data );
+
+	LOGPRINTF(_LOG_NOTE, "Database initialized and populated");
 
 	return 0;
 }
@@ -80,11 +84,15 @@ int database_query (
 
 	// _qtype and _qclass start at 1, so they are invalid when 0.
 
-	if ( !_rdata || !_database || !_qname || !_qtype || !_qclass || _qname_len <= 0 )
+	if ( !_rdata || !_database || !_qname || !_qtype || !_qclass || _qname_len <= 0 ) {
+		LOGPRINTF(_LOG_ERROR, "Invalid arguments");
 		return 1;
+	}
 
-	if ( _qtype >= DB_RR_LEN || _qclass >= DB_RR_LEN )
+	if ( _qtype >= DB_RR_LEN || _qclass >= DB_RR_LEN ) {
+		LOGPRINTF(_LOG_DEBUG, "Invalid qtype/qclass");
 		return 1;
+	}
 
 	_rdata->ttl   = 0;
 	_rdata->rdlen = 0;
@@ -95,8 +103,10 @@ int database_query (
 
 	void* data = tree_get( &_database->zone[class][type], _qname );
 
-	if ( !data )
+	if ( !data ) {
+		LOGPRINTF(_LOG_DEBUG, "No matching RR found");
 		return 2;
+	}
 
 	_rdata->ttl   = *( (uint32_t*) data );
 	_rdata->rdlen = *( (uint16_t*)(data + 4) );

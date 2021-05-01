@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include "tree.h"
+#include "log.h"
 
 // TODO remove
 #include "dns.h"
