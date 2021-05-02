@@ -42,6 +42,6 @@ int handle_connection (	int _socket,
 			socklen_t sockaddr_client_len,
 			char* _buffer,
 			int _bufflen,
-			struct database* _zone_db );
+			database_t* _zone_db );
 
 void signal_term ( );

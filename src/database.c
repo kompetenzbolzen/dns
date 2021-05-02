@@ -6,9 +6,9 @@
 
 #include "database.h"
 
-static int database_init ( struct database* _database ) {
+static int database_init ( database_t* _database ) {
 	// Initialize 2D array of tree_node pointers, paranoia style
-	if ( !( _database->zone = malloc( sizeof( struct tree_node** ) * DB_CLASS_LEN ) ) )
+	if ( !( _database->zone = malloc( sizeof( tree_node_t** ) * DB_CLASS_LEN ) ) )
 		return 1;
 
 	size_t rr_size = sizeof( struct tree_node* ) * DB_RR_LEN;
@@ -23,7 +23,7 @@ static int database_init ( struct database* _database ) {
 }
 
 int database_populate (
-	struct database* _database,
+	database_t* _database,
 	char* _zonefile
 ) {
 	if ( database_init( _database ) ) {
@@ -53,7 +53,7 @@ int database_populate (
 	return 0;
 }
 
-int database_destroy ( struct database* _database ) {
+int database_destroy ( database_t* _database ) {
 	if ( !_database || !_database->zone )
 		return 1;
 
@@ -73,8 +73,8 @@ int database_destroy ( struct database* _database ) {
 }
 
 int database_query (
-	struct database_rdata* _rdata,
-	struct database* _database,
+	database_rdata_t* _rdata,
+	database_t* _database,
 	const char* _qname,
 	int _qname_len,
 	uint16_t _qtype,

@@ -5,7 +5,7 @@
 
 #include "dns.h"
 
-int dns_construct_header ( char* _buffer, int _bufflen, struct dns_header* _header )
+int dns_construct_header ( char* _buffer, int _bufflen, dns_header_t* _header )
 {
 	if ( !_buffer || !_header || _bufflen < 12 )
 		return -1;
@@ -32,7 +32,7 @@ int dns_construct_header ( char* _buffer, int _bufflen, struct dns_header* _head
 int dns_construct_answer (
 		char*	_buffer,
 		int	_bufflen,
-		struct	dns_answer* _answer
+		dns_answer_t* _answer
 		) {
 	int ret = 0;
 
@@ -62,7 +62,7 @@ int dns_construct_answer (
 int dns_construct_questoin (
 		char*	_buffer,
 		int	_bufflen,
-		struct	dns_question* _question
+		dns_question_t* _question
 		) {
 	//TODO Test
 	int ret = 0;
@@ -89,13 +89,13 @@ int dns_construct_questoin (
 int dns_construct_packet (
 		char*	_buffer,
 		int	_bufflen,
-		struct dns_message* _message
+		dns_message_t* _message
 		) {
 	return -1;
 }
 
 
-int dns_destroy_struct ( struct dns_message* _msg )
+int dns_destroy_struct ( dns_message_t* _msg )
 {
 	if ( !_msg )
 		return -1;
@@ -113,7 +113,7 @@ int dns_destroy_struct ( struct dns_message* _msg )
 	return 0;
 }
 
-int dns_parse_packet ( char* _buffer, int _bufflen, struct dns_message* _msg )
+int dns_parse_packet ( char* _buffer, int _bufflen, dns_message_t* _msg )
 {
 	//TODO refactor
 

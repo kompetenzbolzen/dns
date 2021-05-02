@@ -12,7 +12,7 @@ void run_dns_server ( server_config_t* _config )
 
 	char recv_buffer[ UDP_BUFFER_LEN ];
 
-	struct database zone_db;
+	database_t zone_db;
 
 	signal ( SIGTERM, signal_term );
 	signal ( SIGINT,  signal_term );
@@ -92,9 +92,9 @@ int handle_connection (	int _socket,
 			socklen_t sockaddr_client_len,
 			char* _buffer,
 			int _bufflen,
-			struct database* _zone_db )
+			database_t* _zone_db )
 {
-	struct dns_message msg;
+	dns_message_t msg;
 
 	if (dns_parse_packet (_buffer, _bufflen, &msg) ) {
 		LOGPRINTF (_LOG_DEBUG, "Malformed packet recieved. parsing failed");
@@ -110,8 +110,8 @@ int handle_connection (	int _socket,
 	// Only handles first request
 	// TODO heavy refactoring. major POC vibe
 
-	struct database_rdata rdata;
-	struct dns_question* quest = & msg.question[0];
+	database_rdata_t rdata;
+	dns_question_t* quest = & msg.question[0];
 
 	int db_ret = database_query( &rdata, _zone_db, quest->qname, quest->qname_len, quest->qtype, quest->qclass );
 	if (db_ret) {
@@ -120,8 +120,8 @@ int handle_connection (	int _socket,
 		return 1;
 	}
 
-	struct dns_header head = {msg.header.id,1,OP_QUERY,0,0,0,0,0,RCODE_NOERR,0,1,0,0};
-	struct dns_answer answ = {quest->qname, quest->qname_len, RR_A, CL_IN, rdata.ttl, rdata.rdlen, rdata.rdata };
+	dns_header_t head = {msg.header.id,1,OP_QUERY,0,0,0,0,0,RCODE_NOERR,0,1,0,0};
+	dns_answer_t answ = {quest->qname, quest->qname_len, RR_A, CL_IN, rdata.ttl, rdata.rdlen, rdata.rdata };
 
 	char ret[512];
 	int hlen = dns_construct_header ( ret, 512, &head );

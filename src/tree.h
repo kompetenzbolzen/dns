@@ -54,24 +54,24 @@
 #define _TREE_FREE_DATA 0x01
 #define _TREE_FREE_KEY	0x02
 
-struct tree_node {
+typedef struct tree_node {
 	char* key;
 	void* data;
 	struct tree_node* above;
 	struct tree_node* below;
-};
+} tree_node_t;
 
-int tree_insert	( struct tree_node** _root, char* _key, void* _data );
+int tree_insert	( tree_node_t** _root, char* _key, void* _data );
 
 /**
  * Inserts the given list into the tree, achieving optimal depth.
  * Expects a sorted list.
  * */
-int tree_balanced_insert ( struct tree_node** _root, void*  _data[], char* _key[], unsigned int _len);
+int tree_balanced_insert ( tree_node_t** _root, void*  _data[], char* _key[], unsigned int _len);
 
 /**
  * Returns (void*)node->data on success, NULL on failure
  * */
-void* tree_get	( struct tree_node** _root, const char* _query );
+void* tree_get	( tree_node_t** _root, const char* _query );
 
-int tree_destroy( struct tree_node** _root, uint8_t _options );
+int tree_destroy( tree_node_t** _root, uint8_t _options );

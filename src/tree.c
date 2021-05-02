@@ -48,9 +48,9 @@ static int string_compare ( const char* _1, const char* _2 )
 	return 99;
 }
 
-int tree_insert ( struct tree_node** _root, char* _key, void* _data )
+int tree_insert ( tree_node_t** _root, char* _key, void* _data )
 {
-	struct tree_node** node = _root;
+	tree_node_t** node = _root;
 
 	while( *node ) {
 		int ret = string_compare ( (*node)->key, _key );
@@ -74,7 +74,7 @@ int tree_insert ( struct tree_node** _root, char* _key, void* _data )
 	return 0;
 }
 
-int tree_balanced_insert ( struct tree_node** _root, void*  _data[], char* _key[], unsigned int _len)
+int tree_balanced_insert ( tree_node_t** _root, void*  _data[], char* _key[], unsigned int _len)
 {
 	// n is the smallest n, for which 2^(n+1) - 1 >= _len,
 	// thus describes the minimal tree depth required to store
@@ -111,14 +111,14 @@ int tree_balanced_insert ( struct tree_node** _root, void*  _data[], char* _key[
 	return 0;
 }
 
-int tree_destroy ( struct tree_node** _root, uint8_t _options )
+int tree_destroy ( tree_node_t** _root, uint8_t _options )
 {
 	//Not efficient, but this code is for testing only.
 	unsigned int max_depth = 0;
 	unsigned int node_cnt = 0;
 	while(*_root)
 	{
-		struct tree_node** node = _root;
+		tree_node_t** node = _root;
 		unsigned int depth = 0;
 
 		while( (*node)->above || (*node)->below ) {
@@ -144,9 +144,9 @@ int tree_destroy ( struct tree_node** _root, uint8_t _options )
 	return 0;
 }
 
-void* tree_get ( struct  tree_node** _root, const char* _query )
+void* tree_get ( tree_node_t** _root, const char* _query )
 {
-	struct tree_node** node = _root;
+	tree_node_t** node = _root;
 
 	while(*node) {
 		int ret = string_compare ( (*node)->key, _query );

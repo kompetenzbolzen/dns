@@ -76,17 +76,17 @@ enum dns_responsecode {
 /**
  * Data is COPIED
  * */
-struct dns_header;
+typedef struct dns_header dns_header_t;
 
 /**
  * QNAME is REFERENCED
  * */
-struct dns_question;
+typedef struct dns_question dns_question_t;
 
 /**
  * NAME is REFERENCED
  * */
-struct dns_answer;
+typedef struct dns_answer dns_answer_t;
 
 /**
  * DNS Message struct
@@ -95,7 +95,7 @@ struct dns_answer;
  * the buffer used to create it remains unchanged as
  * some values are referenced, not copied.
  * */
-struct dns_message;
+typedef struct dns_message dns_message_t;
 
 struct dns_header {
 	uint16_t id;
@@ -138,41 +138,41 @@ struct dns_message {
 	struct dns_header header;
 
 	int question_count;
-	struct dns_question* question;
+	dns_question_t* question;
 
 	int answer_count;
-	struct dns_answer* answer;
+	dns_answer_t* answer;
 };
 
 int dns_construct_header (
 		char*	_buffer,
 		int	_bufflen,
-		struct	dns_header* _header
+		dns_header_t* _header
 		);
 
 int dns_construct_answer (
 		char*	_buffer,
 		int	_bufflen,
-		struct	dns_answer* _answer
+		dns_answer_t* _answer
 		);
 
 int dns_construct_questoin (
 		char*	_buffer,
 		int	_bufflen,
-		struct	dns_question* _question
+		dns_question_t* _question
 		);
 
 // Question and answer count come from header
 int dns_construct_packet (
 		char*	_buffer,
 		int	_bufflen,
-		struct dns_message* _message
+		dns_message_t* _message
 		);
 
 /**
  * Frees all malloced memory
  * */
-int dns_destroy_struct ( struct dns_message* _msg );
+int dns_destroy_struct ( dns_message_t* _msg );
 
 /**
  * Parse the packet in _buffer and populate the dns_message struct
@@ -182,7 +182,7 @@ int dns_destroy_struct ( struct dns_message* _msg );
  * ONLY WRITES QUESTION SECTION. ALL OTHER ARE IGNORED
  *
  * */
-int dns_parse_packet ( char* _buffer, int _bufflen, struct dns_message* _msg );
+int dns_parse_packet ( char* _buffer, int _bufflen, dns_message_t* _msg );
 
 /**
  * Convert a null terminated string containing a
