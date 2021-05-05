@@ -29,13 +29,15 @@
 typedef struct server_config {
 	char* bind_ip;
 	uint16_t bind_port;
+	char* zonefile;
+	char* user;
 } server_config_t;
 
 static int sock_server;
 
-int init_socket ( );
+void server_start ( server_config_t* _config );
 
-void run_dns_server ( server_config_t* _config );
+int server_get_socket ( char* _bind_ip, uint16_t _bind_port );
 
 int handle_connection (	int _socket,
 			struct sockaddr_in *sockaddr_client,
