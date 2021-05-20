@@ -35,8 +35,6 @@ typedef struct server_config {
 	char* user;
 } server_config_t;
 
-static int sock_server;
-
 void server_start ( server_config_t* _config );
 
 void server_handle_connection ( int _socket, database_t* _zone_db );

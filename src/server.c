@@ -1,9 +1,11 @@
-/* main.c
+/* server.c
  * (c) Jonas Gunz, 2020
  * License: MIT
  * */
 
 #include "server.h"
+
+static int sock_server;
 
 void server_start ( server_config_t* _config )
 {
@@ -37,13 +39,11 @@ void server_start ( server_config_t* _config )
 			LOGPRINTF( _LOG_ERRNO, "select()" );
 			exit(1);
 		} else if ( sel_ret ) {
-			// A connection is available
 			DEBUG("Connection");
 			server_handle_connection( sock_server, &zone_db );
 		}
 	}
 
-	close( sock_server );
 	exit(0);
 }
 
@@ -62,7 +62,7 @@ void server_handle_connection ( int _socket, database_t* _zone_db ) {
 	dns_message_t dns_req;
 	dns_header_t answ_header;
 
-	memset ( &sock_client_addr, 0, sock_client_addr_len );
+	memset( &sock_client_addr, 0, sock_client_addr_len );
 
 	recv_len = recvfrom ( _socket, recv_buffer, UDP_BUFFER_LEN,
 			0, (struct sockaddr*) &sock_client_addr,
@@ -74,23 +74,22 @@ void server_handle_connection ( int _socket, database_t* _zone_db ) {
 	}
 
 	if ( dns_parse_packet( recv_buffer, recv_len, &dns_req ) ) {
-		DEBUG("Malformed packet recieved. parsing failed");
-		// free?
+		DEBUG( "Malformed packet recieved. parsing failed" );
 		return;
 	}
 
 	if ( ! dns_req.question_count ) {
-		DEBUG("No questions in request.");
+		DEBUG( "No questions in request." );
 		goto end;
 	}
 
-	DEBUG("Valid data with %i question(s)", dns_req.question_count);
+	DEBUG( "Valid data with %i question(s)", dns_req.question_count );
 
-	memset ( &answ_header, 0, sizeof( dns_header_t ) );
+	memset( &answ_header, 0, sizeof( dns_header_t ) );
 
 	answ_header.id = dns_req.header.id;
-	answ_header.QR = 1; //Response
-	answ_header.AA = 1;
+	answ_header.QR = 1; // Response
+	answ_header.AA = 1; // Authorative answer
 	
 	// TODO test with artificially large rdata to exceed buffer
 	for (unsigned int i = 0; i < dns_req.question_count; i++) {
@@ -113,7 +112,7 @@ void server_handle_connection ( int _socket, database_t* _zone_db ) {
 		cnt_inc += dns_construct_answer( &answ_buffer[answ_cnt], answ_len - answ_cnt, &dns_answ );
 		
 		if (cnt_inc <= 0) {
-			LOGPRINTF(_LOG_ERROR, "dns_construct_answer() return <= 0");
+			LOGPRINTF(_LOG_ERROR, "dns_construct_answer() failed with %i. Buffer overrun?", cnt_inc);
 			goto end;
 		}
 
@@ -160,11 +159,7 @@ int server_get_socket ( char* _bind_ip, uint16_t _bind_port ) {
 }
 
 void signal_term ( ) {
-	LOGPRINTF(_LOG_NOTE, "Server shutting down" );
-
-	shutdown ( sock_server, SHUT_RDWR );
-	close ( sock_server );
-
-	LOGPRINTF(_LOG_NOTE, "Done!" );
-	exit( 0 );
+	LOGPRINTF( _LOG_NOTE, "Server shutting down" );
+	close( sock_server );
+	exit(0);
 }
