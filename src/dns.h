@@ -71,6 +71,8 @@ enum dns_responsecode {
 	REFUSED	= 5
 };
 
+#define DNS_HEADER_LEN 12
+
 #define FLIP_BYTES(u)	(((0x00FF & u) << 8) | ((0xFF00 & u) >> 8))
 
 /**

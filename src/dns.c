@@ -26,7 +26,7 @@ int dns_construct_header ( char* _buffer, int _bufflen, dns_header_t* _header )
 	*((uint16_t*)(_buffer + 8 )) = FLIP_BYTES(_header->authorative_count);
 	*((uint16_t*)(_buffer + 10)) = FLIP_BYTES(_header->additional_count);
 
-	return 12;
+	return DNS_HEADER_LEN;
 }
 
 int dns_construct_answer (

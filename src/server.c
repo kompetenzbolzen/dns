@@ -7,7 +7,10 @@
 
 void server_start ( server_config_t* _config )
 {
-	char recv_buffer[ UDP_BUFFER_LEN ];
+	fd_set sel_fds;
+	struct timeval sel_interval;
+	int    sel_ret = 0;
+
 	database_t zone_db;
 
 	signal ( SIGTERM, signal_term );
@@ -23,85 +26,107 @@ void server_start ( server_config_t* _config )
 	LOGPRINTF(_LOG_NOTE, "Done!");
 
 	while( 1 ) {
-		struct    sockaddr_in sock_client_addr;
-		socklen_t sock_client_addr_len = sizeof( struct sockaddr_in );
-		int       recv_len = 0;
+		FD_ZERO ( &sel_fds );
+		FD_SET  ( sock_server, &sel_fds );
+		sel_interval.tv_sec  = 0;
+		sel_interval.tv_usec = 10000;
 
-		memset ( &sock_client_addr, 0, sock_client_addr_len );
+		sel_ret = select( sock_server + 1, &sel_fds, NULL, NULL, &sel_interval );
 
-		recv_len = recvfrom (sock_server,
-				recv_buffer,
-				UDP_BUFFER_LEN,
-				0,
-				(struct sockaddr*) &sock_client_addr,
-				&sock_client_addr_len );
-		if ( recv_len == -1 ) {
-			LOGPRINTF( _LOG_ERRNO, "recvfrom()");
-			exit ( errno );
+		if ( sel_ret < 0 ) {
+			LOGPRINTF( _LOG_ERRNO, "select()" );
+			exit(1);
+		} else if ( sel_ret ) {
+			// A connection is available
+			DEBUG("Connection");
+			server_handle_connection( sock_server, &zone_db );
 		}
-
-		DEBUG("Packet size %i from %s:%i", recv_len, inet_ntoa(sock_client_addr.sin_addr), sock_client_addr.sin_port );
-
-		handle_connection ( sock_server,
-				&sock_client_addr,
-				sock_client_addr_len,
-				recv_buffer,
-				recv_len,
-				&zone_db );
 	}
 
 	close( sock_server );
 	exit(0);
 }
 
-int handle_connection (	int _socket,
-			struct sockaddr_in *sockaddr_client,
-			socklen_t sockaddr_client_len,
-			char* _buffer,
-			int _bufflen,
-			database_t* _zone_db ) {
-	dns_message_t msg;
+void server_handle_connection ( int _socket, database_t* _zone_db ) {
+	char recv_buffer[ UDP_BUFFER_LEN ];
+	int  recv_len = 0;
 
-	if ( dns_parse_packet (_buffer, _bufflen, &msg) ) {
+	char answ_buffer[ UDP_BUFFER_LEN ];
+	int  answ_len = UDP_BUFFER_LEN;
+	int  answ_cnt = DNS_HEADER_LEN;
+	// preload with header length, because it is written last.
+
+	struct    sockaddr_in sock_client_addr;
+	socklen_t sock_client_addr_len = sizeof( struct sockaddr_in );
+
+	dns_message_t dns_req;
+	dns_header_t answ_header;
+
+	memset ( &sock_client_addr, 0, sock_client_addr_len );
+
+	recv_len = recvfrom ( _socket, recv_buffer, UDP_BUFFER_LEN,
+			0, (struct sockaddr*) &sock_client_addr,
+			&sock_client_addr_len );
+
+	if ( recv_len == -1 ) {
+		LOGPRINTF( _LOG_ERRNO, "recvfrom()");
+		exit ( 1 );
+	}
+
+	if ( dns_parse_packet( recv_buffer, recv_len, &dns_req ) ) {
 		DEBUG("Malformed packet recieved. parsing failed");
-		return 1;
+		// free?
+		return;
 	}
 
-	if ( ! msg.question_count ) {
+	if ( ! dns_req.question_count ) {
 		DEBUG("No questions in request.");
-		return 1;
+		goto end;
 	}
 
-	if (msg.question_count > 0) {
-		char out[128];
-		qname_to_fqdn( (char*) msg.question[0].qname, msg.question[0].qname_len, out, 128);
-		LOGPRINTF(_LOG_DEBUG, "Request for %s QTYPE %i", out, msg.question[0].qtype);
+	DEBUG("Valid data with %i question(s)", dns_req.question_count);
+
+	memset ( &answ_header, 0, sizeof( dns_header_t ) );
+
+	answ_header.id = dns_req.header.id;
+	answ_header.QR = 1; //Response
+	answ_header.AA = 1;
+	
+	// TODO test with artificially large rdata to exceed buffer
+	for (unsigned int i = 0; i < dns_req.question_count; i++) {
+		int cnt_inc = 0;
+		database_rdata_t db_rdata;
+		dns_question_t *quest = &dns_req.question[i];
+		dns_answer_t dns_answ = {quest->qname, quest->qname_len, quest->qtype, quest->qclass, 0, 0, NULL };
+
+
+		if( database_query( &db_rdata, _zone_db, quest->qname, quest->qname_len, quest->qtype, quest->qclass ) ) {
+			answ_header.RCODE = RCODE_NAMEERR;
+			DEBUG("Could not answer question %i", i);
+			continue;
+		}
+
+		dns_answ.rdlength = db_rdata.rdlen;
+		dns_answ.rdata    = db_rdata.rdata;
+		dns_answ.ttl      = db_rdata.ttl;
+
+		cnt_inc += dns_construct_answer( &answ_buffer[answ_cnt], answ_len - answ_cnt, &dns_answ );
+		
+		if (cnt_inc <= 0) {
+			LOGPRINTF(_LOG_ERROR, "dns_construct_answer() return <= 0");
+			goto end;
+		}
+
+		answ_cnt += cnt_inc;
+		answ_header.answer_count += 1;
 	}
 
-	// Only handles first request
-	// TODO heavy refactoring. major POC vibe
+	dns_construct_header( answ_buffer, answ_len, &answ_header );
 
-	database_rdata_t rdata;
-	dns_question_t* quest = & msg.question[0];
+	sendto( _socket, answ_buffer, answ_cnt, 0, (struct sockaddr*) &sock_client_addr, sock_client_addr_len );
 
-	int db_ret = database_query( &rdata, _zone_db, quest->qname, quest->qname_len, quest->qtype, quest->qclass );
-	if (db_ret) {
-		LOGPRINTF(_LOG_DEBUG, "DB Query exited with code %i", db_ret);
-		dns_destroy_struct ( &msg );
-		return 1;
-	}
-
-	dns_header_t head = {msg.header.id,1,OP_QUERY,0,0,0,0,0,RCODE_NOERR,0,1,0,0};
-	dns_answer_t answ = {quest->qname, quest->qname_len, RR_A, CL_IN, rdata.ttl, rdata.rdlen, rdata.rdata };
-
-	char ret[512];
-	int hlen = dns_construct_header ( ret, 512, &head );
-	int alen = dns_construct_answer ( ret + hlen, 512-hlen, &answ );
-	sendto( _socket, ret, hlen + alen, 0, (struct sockaddr*) sockaddr_client, sockaddr_client_len );
-
-	dns_destroy_struct ( &msg );
-
-	return 0;
+end:
+	dns_destroy_struct ( &dns_req );
 }
 
 int server_get_socket ( char* _bind_ip, uint16_t _bind_port ) {

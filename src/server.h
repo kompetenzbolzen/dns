@@ -20,6 +20,8 @@
 
 #include <signal.h>
 
+#include <sys/select.h>
+
 #include "dns.h"
 #include "log.h"
 #include "database.h"
@@ -37,13 +39,8 @@ static int sock_server;
 
 void server_start ( server_config_t* _config );
 
-int server_get_socket ( char* _bind_ip, uint16_t _bind_port );
+void server_handle_connection ( int _socket, database_t* _zone_db );
 
-int handle_connection (	int _socket,
-			struct sockaddr_in *sockaddr_client,
-			socklen_t sockaddr_client_len,
-			char* _buffer,
-			int _bufflen,
-			database_t* _zone_db );
+int server_get_socket ( char* _bind_ip, uint16_t _bind_port );
 
 void signal_term ( );
