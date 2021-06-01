@@ -7,12 +7,14 @@
 #include "database.h"
 
 static int database_init ( database_t* _database ) {
-	// Initialize 2D array of tree_node pointers, paranoia style
+	unsigned int i = 0;
+
+	/* Initialize 2D array of tree_node pointers, paranoia style */
 	if ( !( _database->zone = malloc( sizeof( tree_node_t** ) * DB_CLASS_LEN ) ) )
 		return 1;
 
 	size_t rr_size = sizeof( struct tree_node* ) * DB_RR_LEN;
-	for ( unsigned int i = 0; i < DB_CLASS_LEN; i++ ) {
+	for ( i = 0; i < DB_CLASS_LEN; i++ ) {
 		if ( !( _database->zone[i] = malloc( rr_size ) ) )
 			return 1;
 
@@ -31,7 +33,7 @@ int database_populate (
 		return 1;
 	}
 
-	// TODO parsing
+	/* TODO parsing */
 	
 	char* qname = malloc(32);
 
@@ -54,12 +56,14 @@ int database_populate (
 }
 
 int database_destroy ( database_t* _database ) {
+	unsigned int i, o;
+
 	if ( !_database || !_database->zone )
 		return 1;
 
-	for ( unsigned int i = 0; i < DB_CLASS_LEN; i++ ) {
-		for ( unsigned int o = 0; o < DB_RR_LEN; o++ ) {
-			// TODO should we free data and key?
+	for ( i = 0; i < DB_CLASS_LEN; i++ ) {
+		for ( o = 0; o < DB_RR_LEN; o++ ) {
+			/* TODO should we free data and key? */
 			tree_destroy( &_database->zone[i][o], _TREE_FREE_DATA | _TREE_FREE_KEY );
 		}
 
@@ -82,7 +86,7 @@ int database_query (
 ) {
 	uint16_t type, class;
 
-	// _qtype and _qclass start at 1, so they are invalid when 0.
+	/* _qtype and _qclass start at 1, so they are invalid when 0. */
 
 	if ( !_rdata || !_database || !_qname || !_qtype || !_qclass || _qname_len <= 0 ) {
 		LOGPRINTF(_LOG_ERROR, "Invalid arguments");

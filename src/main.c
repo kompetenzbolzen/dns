@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
+#include <unistd.h>
+
 #include "log.h"
 #include "server.h"
 
@@ -27,20 +29,21 @@ void print_help( char *_argv0 ) {
 }
 
 void parse_args( server_config_t *_config, int argc, char* argv[]) {
+	int i, o;
 	memset( _config, 0, sizeof( server_config_t ) );
 
 	_config->bind_ip = "0.0.0.0";
 	_config->bind_port = 53;
 	_config->zonefile = "/nofile";
 
-	for( int i = 1; i < argc; i++ ) {
+	for( i = 1; i < argc; i++ ) {
 		const int icpy = i;
 		if ( argv[i][0] != '-' ) {
 			print_help( argv[0] );
 			exit( 1 );
 		}
 
-		for( int o = 1; o < strlen(argv[icpy]); o++ ) {
+		for( o = 1; o < strlen(argv[icpy]); o++ ) {
 			switch( argv[icpy][o] ) {
 				case 'h':
 					print_help( argv[0] );
@@ -69,6 +72,10 @@ int main(int argc, char* argv[])
 	parse_args( &config, argc, argv );
 
 	log_init_stdout(_LOG_DEBUG);
+
+	if ( getuid() == 0 )
+		LOGPRINTF(_LOG_WARNING, "Running as root is not a good idea. Use setcap or unprivileged port instead.");
+
 	
 #ifdef _TEST
 	run_test();

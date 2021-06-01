@@ -48,13 +48,15 @@ void server_start ( server_config_t* _config )
 }
 
 void server_handle_connection ( int _socket, database_t* _zone_db ) {
+	unsigned int i;
+
 	char recv_buffer[ UDP_BUFFER_LEN ];
 	int  recv_len = 0;
 
 	char answ_buffer[ UDP_BUFFER_LEN ];
 	int  answ_len = UDP_BUFFER_LEN;
 	int  answ_cnt = DNS_HEADER_LEN;
-	// preload with header length, because it is written last.
+	/* preload with header length, because it is written last. */
 
 	struct    sockaddr_in sock_client_addr;
 	socklen_t sock_client_addr_len = sizeof( struct sockaddr_in );
@@ -88,11 +90,11 @@ void server_handle_connection ( int _socket, database_t* _zone_db ) {
 	memset( &answ_header, 0, sizeof( dns_header_t ) );
 
 	answ_header.id = dns_req.header.id;
-	answ_header.QR = 1; // Response
-	answ_header.AA = 1; // Authorative answer
+	answ_header.QR = 1; /* Response */
+	answ_header.AA = 1; /* Authorative answer */
 	
-	// TODO test with artificially large rdata to exceed buffer
-	for (unsigned int i = 0; i < dns_req.question_count; i++) {
+	/* TODO test with artificially large rdata to exceed buffer */
+	for (i = 0; i < dns_req.question_count; i++) {
 		int cnt_inc = 0;
 		database_rdata_t db_rdata;
 		dns_question_t *quest = &dns_req.question[i];

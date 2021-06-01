@@ -11,7 +11,7 @@
 #include "tree.h"
 #include "log.h"
 
-// TODO remove
+/* TODO remove */
 #include "dns.h"
 
 /*

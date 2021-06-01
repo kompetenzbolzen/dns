@@ -41,8 +41,10 @@ extern const char* log_loglevel_str[6];
 	}\
 }
 
-// DEBUG Wrapper around LOGPRINTF wich is only compiled in in
-// _DEBUG mode for performance
+/*
+ * DEBUG Wrapper around LOGPRINTF wich is only compiled in in
+ * _DEBUG mode for performance
+ */
 
 #ifdef _DEBUG
 #define DEBUG(...) { LOGPRINTF(_LOG_DEBUG, __VA_ARGS__); }

@@ -25,7 +25,7 @@ static int string_compare ( const char* _1, const char* _2 )
 		char c1 = _1[i];
 		char c2 = _2[i];
 
-		//Convert to uppercase
+		/* Convert to uppercase */
 		if ( c1 >= 97 && c1 <= 122 )
 			c1 -= 32;
 		if ( c2 >= 97 && c2 <= 122 )
@@ -44,7 +44,7 @@ static int string_compare ( const char* _1, const char* _2 )
 	if ( _2[i] )
 		return -1;
 
-	//TODO not so great
+	/* TODO not so great */
 	return 99;
 }
 
@@ -58,15 +58,15 @@ int tree_insert ( tree_node_t** _root, char* _key, void* _data )
 			node = & (*node)->above;
 		} else if ( ret < 0 ) {
 			node = & (*node)->below;
-		} else { //Already exists
+		} else { /* Already exists */
 			return 1;
 		}
 	}
 
-	*node = malloc (sizeof(typeof(**node)));
+	*node = malloc (sizeof(**node));
 	if( ! *node )
 		return 2;
-	memset ( *node, 0, sizeof(typeof(**node)) );
+	memset ( *node, 0, sizeof(**node) );
 
 	(*node)->key  = _key;
 	(*node)->data = _data;
@@ -76,31 +76,37 @@ int tree_insert ( tree_node_t** _root, char* _key, void* _data )
 
 int tree_balanced_insert ( tree_node_t** _root, void*  _data[], char* _key[], unsigned int _len)
 {
-	// n is the smallest n, for which 2^(n+1) - 1 >= _len,
-	// thus describes the minimal tree depth required to store
-	// _len amount of elements
+	unsigned int i = 0, o = 0;
 	unsigned int n = 0;
-	for (n = 0; pow( 2, n+1 ) - 1 < _len; n++);
 
+	/*
+	 * n is the smallest n, for which 2^(n+1) - 1 >= _len,
+	 * thus describes the minimal tree depth required to store
+	 * _len amount of elements
+	 */
+	for (n = 0; pow( 2, n+1 ) - 1 < _len; n++){}
 
-	// The maximum size of a tree with depth n;
+	/* The maximum size of a tree with depth n; */
 	unsigned int virtual_len = pow( 2, n+1 ) - 1;
 
 	unsigned int indices[ virtual_len ];
 	unsigned int indices_cnt = 0;
 
+
 	LOGPRINTF(_LOG_DEBUG, "Elements: %u Rounded size: %u Optimal depth: %u", _len, virtual_len, n);
 
-	// Creates the series
-	// 1/2, 1/4, 3/4, 1/8, 3/8, 5/8, 7/8, ...
-	for (unsigned int i = 0; i <= n+1; i++) {
+	/*
+	 * Creates the series
+	 * 1/2, 1/4, 3/4, 1/8, 3/8, 5/8, 7/8, ...
+	 */
+	for (i = 0; i <= n+1; i++) {
 		unsigned int pow_2_i = pow(2,i);
-		for (unsigned int o = 1; o < pow(2,i); o+=2) {
+		for (o = 1; o < pow(2,i); o+=2) {
 			indices[ indices_cnt++ ] = virtual_len * o / pow_2_i;
 		}
 	}
 
-	for ( unsigned int i = 0; i < virtual_len; i++ ) {
+	for ( i = 0; i < virtual_len; i++ ) {
 		if ( indices[i] < _len ) {
 			if (tree_insert ( _root, _key[indices[i]], _data[indices[i]] )){ 
 				LOGPRINTF(_LOG_WARNING, "tree_insert failed on \"%s\". Double?", _key[indices[i]]);
@@ -113,7 +119,7 @@ int tree_balanced_insert ( tree_node_t** _root, void*  _data[], char* _key[], un
 
 int tree_destroy ( tree_node_t** _root, uint8_t _options )
 {
-	//Not efficient, but this code is for testing only.
+	/* Not efficient, but this code is for testing only, anyways. */
 	unsigned int max_depth = 0;
 	unsigned int node_cnt = 0;
 	while(*_root)

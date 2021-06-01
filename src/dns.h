@@ -9,11 +9,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-//TODO remove
+/* TODO remove */
 #include <stdio.h>
 
-//TODO remove defines
-//Resource Records
+/* Resource Records */
 #define RR_A	1
 #define RR_NS	2
 #define RR_CNAME 5
@@ -33,11 +32,11 @@ enum dns_record {
 	SRV	= 33
 };
 
-//Record Classes
-#define CL_IN	1 //Internet
-#define CL_CS	2 //CSNET (Obsolete)
-#define CL_CH	3 //CHAOS
-#define CL_HS	4 //Hesiod
+/* Record Classes */
+#define CL_IN	1 /* Internet */
+#define CL_CS	2 /* CSNET (Obsolete) */
+#define CL_CH	3 /* CHAOS */
+#define CL_HS	4 /* Hesiod */
 enum dns_record_class {
 	IN	= 1,
 	CS	= 2,
@@ -45,22 +44,22 @@ enum dns_record_class {
 	HS	= 4
 };
 
-//OPCODES
-#define OP_QUERY	0 //Query
-#define OP_IQUERY	1 //Inverse Query
-#define OP_STATUS	2 //Status request
+/* OPCODES */
+#define OP_QUERY	0 /* Query */
+#define OP_IQUERY	1 /* Inverse Query */
+#define OP_STATUS	2 /* Status request */
 enum dns_opcode {
 	QUERY	= 0,
 	INVERSE	= 1,
 	STATUS	= 2
 };
 
-//Responsecode
+/* Responsecode */
 #define RCODE_NOERR	0
 #define RCODE_FORMAT	1
 #define RCODE_SERVFAIL	2
 #define RCODE_NAMEERR	3
-#define RCODE_NOTIMPL	4 //Not implemented
+#define RCODE_NOTIMPL	4
 #define RCODE_REFUSED	5
 enum dns_responsecode {
 	NOERR	= 0,
@@ -102,14 +101,14 @@ typedef struct dns_message dns_message_t;
 struct dns_header {
 	uint16_t id;
 
-	uint8_t QR;	//Query:0 Reply:1
-	uint8_t OPCODE;	//Query:0 Iquery:1 Status:2
-	uint8_t AA;	//Authorative answer
-	uint8_t TC;	//Truncation
-	uint8_t RD;	//Recursion Desired
-	uint8_t RA;	//Recursion Available
-	uint8_t Z;	//Unused
-	uint8_t RCODE;	//Response Code
+	uint8_t QR;	/* Query:0 Reply:1 */
+	uint8_t OPCODE;	/* Query:0 Iquery:1 Status:2 */
+	uint8_t AA;	/* Authorative answer */
+	uint8_t TC;	/* Truncation */
+	uint8_t RD;	/* Recursion Desired */
+	uint8_t RA;	/* Recursion Available */
+	uint8_t Z;	/* Unused */
+	uint8_t RCODE;	/* Response Code */
 
 	uint16_t question_count;
 	uint16_t answer_count;
@@ -126,7 +125,7 @@ struct dns_question {
 };
 
 struct dns_answer {
-	const char* qname; //in qname format
+	const char* qname;
 	int qname_len;
 
 	uint16_t type;
@@ -164,7 +163,7 @@ int dns_construct_questoin (
 		dns_question_t* _question
 		);
 
-// Question and answer count come from header
+/* Question and answer count come from header */
 int dns_construct_packet (
 		char*	_buffer,
 		int	_bufflen,

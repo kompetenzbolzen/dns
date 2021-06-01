@@ -46,7 +46,7 @@
 #include <math.h>
 #include <string.h>
 
-//TODO remove
+/* TODO remove */
 #include <stdio.h>
 
 #include "log.h"

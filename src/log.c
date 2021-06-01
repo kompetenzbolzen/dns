@@ -19,14 +19,17 @@ const char* log_loglevel_str[6] = {
 
 int log_init_file(char* _file, unsigned int _verbosity)
 {
+	return -1;
+	/*
 	log_fd = open(_file, O_WRONLY | O_APPEND | O_CREAT | O_DSYNC);
 
 	return log_init_stdout(_verbosity);;
+	*/
 }
 
 int log_init_stdout(unsigned int _verbosity)
 {
-	log_loglevel = _verbosity;// > _LOG_DEBUG ? _LOG_DEBUG : _verbosity;
+	log_loglevel = _verbosity; /* > _LOG_DEBUG ? _LOG_DEBUG : _verbosity; */
 	log_fd = STDIN_FILENO;
 
 	LOGPRINTF(0, "=== RESTART ===");

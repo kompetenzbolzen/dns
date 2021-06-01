@@ -29,6 +29,8 @@ void run_test ()
 
 int test_tree ()
 {
+	unsigned int  i, j;
+
 	unsigned const int len = pow ( 'z' - 'a' + 1, 2);
 	unsigned int len_cnt = 0;
 	char* keys[len];
@@ -38,8 +40,8 @@ int test_tree ()
 
 	printf("\n-> test_tree()\n======\n\n");
 
-	for ( char i = 'a'; i <= 'z'; i++ ) {
-		for ( char j = 'a'; j <= 'z'; j++ ) {
+	for ( i = 'a'; i <= 'z'; i++ ) {
+		for ( j = 'a'; j <= 'z'; j++ ) {
 			keys[len_cnt] = malloc (3);
 			keys[len_cnt][0] = i;
 			keys[len_cnt][1] = j;
@@ -60,7 +62,7 @@ int test_tree ()
 
 	printf("%s\n", (char*)tree_get(&root, "aa"));
 
-	for ( int i = 0; i < len; i++ ) {
+	for ( i = 0; i < len; i++ ) {
 		if ( strcmp( tree_get(&root, keys[i]), data[i] ) )
 			LOGPRINTF(_LOG_WARNING, "Data does not match for %s", keys[i]);
 	}
@@ -76,6 +78,8 @@ int test_tree ()
 
 int test_dns_parsing ()
 {
+	int i;
+
 	printf("\n-> test_dns_parsing()\n======\n\n");
 	char in[128];
 	char out[128];
@@ -96,7 +100,7 @@ int test_dns_parsing ()
 		return 1;
 	}
 
-	for(int i = 0; i < written; i++)
+	for(i = 0; i < written; i++)
 		printf(" %x ", out[i]);
 
 	written = qname_to_fqdn (out,128,in,128);
@@ -184,6 +188,9 @@ int test_database(){
 	printf("Return code %i, rdlen %i\n", ret, rdata.rdlen);
 
 	database_destroy( &db );
+
+	free(qname);
+	qname = NULL;
 
 	return 0;
 }
