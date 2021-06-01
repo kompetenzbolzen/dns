@@ -1,5 +1,5 @@
 CC              = clang
-CFLAGS          = -Wall -std=c89 -D _DEFAULT_SOURCE
+CFLAGS          = -Wall -std=c89 -D_DEFAULT_SOURCE
 LDFLAGS         = -lm
 BUILDDIR        = build
 SOURCEDIR       = src
@@ -44,3 +44,6 @@ clean:
 
 .PHONY: all
 all: clean build
+
+devsetup:
+	@echo "$(CFLAGS)" | tr ' ' '\n' > compile_flags.txt
