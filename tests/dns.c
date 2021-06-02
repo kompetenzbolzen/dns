@@ -6,7 +6,7 @@
 
 #include "tests.h"
 
-#include <dns.h>
+#include "../src/dns.h"
 
 START_TEST (dns_qname) {
 	char in[128];

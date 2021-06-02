@@ -4,7 +4,9 @@ LDFLAGS         = -lm
 BUILDDIR        = build
 SOURCEDIR       = src
 OBJECTDIR       = obj
+
 TESTDIR         = tests
+TESTFLAGS       = $(CFLAGS) -D_TEST
 
 OUTPUT          = dnsd
 
@@ -24,9 +26,9 @@ debug: CFLAGS += -g -D _DEBUG
 debug: build;
 
 test: LDFLAGS += -lcheck
-test: clean dir $(TOBJS) $(TSUBS)
+test: dir $(TOBJS) $(TSUBS)
 	@echo [LD] $(TOBJS) $(TSUBS)
-	@$(CC) $(CFLAGS) -I $(SOURCEDIR) -o $(TESTDIR)/run $(TOBJS) $(TSUBS) $(LDFLAGS)
+	@$(CC) $(TESTFLAGS) -o $(TESTDIR)/run $(TOBJS) $(TSUBS) $(LDFLAGS)
 	@$(TESTDIR)/run
 
 dir:
@@ -39,7 +41,7 @@ $(OBJECTDIR)/%.o: $(SOURCEDIR)/%.c
 
 $(TESTDIR)/%.o: $(TESTDIR)/%.c
 	@echo [TEST] $<
-	@$(CC) $(CFLAGS) -I $(SOURCEDIR) -c $< -o $@
+	@$(CC) $(TESTFLAGS) -c $< -o $@
 
 #sudo setcap 'cap_net_bind_service=+ep' /path/to/prog
 #to allow port access
@@ -57,4 +59,11 @@ clean:
 all: clean build
 
 devsetup:
-	@echo "$(CFLAGS)" | tr ' ' '\n' > compile_flags.txt
+	@echo "[" > compile_commands.json
+	@for file in $(SRCS); do \
+		echo "{\"directory\":\"$(PWD)\",\"command\":\"$(shell which $(CC)) $(CFLAGS) -c $$file\",\"file\":\"$(PWD)/$$file\"}," >> compile_commands.json;\
+	done
+	@for file in $(TESTS); do \
+		echo "{\"directory\":\"$(PWD)\",\"command\":\"$(shell which $(CC)) $(TESTFLAGS) -c $$file\",\"file\":\"$(PWD)/$$file\"}," >> compile_commands.json;\
+	done
+	@echo "]" >> compile_commands.json
