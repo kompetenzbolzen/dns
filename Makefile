@@ -1,5 +1,5 @@
 CC              = clang
-CFLAGS          = -Wall -std=c89 -D_DEFAULT_SOURCE
+CFLAGS          = -Wall -std=c89 -D_DEFAULT_SOURCE -Wvla
 LDFLAGS         = -lm
 BUILDDIR        = build
 SOURCEDIR       = src
