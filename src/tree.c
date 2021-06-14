@@ -17,10 +17,11 @@ static int string_compare ( const char* _1, const char* _2 );
  * */
 static int string_compare ( const char* _1, const char* _2 )
 {
+	int i;
+
 	if ( !_1 || !_2 )
 		return 99;
 
-	int i;
 	for (i = 0; _1[i] && _2[i]; i++) {
 		char c1 = _1[i];
 		char c2 = _2[i];
@@ -76,8 +77,11 @@ int tree_insert ( tree_node_t** _root, char* _key, void* _data )
 
 int tree_balanced_insert ( tree_node_t** _root, void*  _data[], char* _key[], unsigned int _len)
 {
-	unsigned int i = 0, o = 0;
-	unsigned int n = 0;
+	unsigned int i, o, n, virtual_len, indices_cnt;
+	unsigned int* indices;
+
+	indices = NULL;
+	indices_cnt = 0;
 
 	/*
 	 * n is the smallest n, for which 2^(n+1) - 1 >= _len,
@@ -87,10 +91,12 @@ int tree_balanced_insert ( tree_node_t** _root, void*  _data[], char* _key[], un
 	for (n = 0; pow( 2, n+1 ) - 1 < _len; n++){}
 
 	/* The maximum size of a tree with depth n; */
-	unsigned int virtual_len = pow( 2, n+1 ) - 1;
+	virtual_len = pow( 2, n+1 ) - 1;
 
-	unsigned int indices[ virtual_len ];
-	unsigned int indices_cnt = 0;
+	indices = malloc( virtual_len * sizeof(unsigned int) );
+
+	if(!indices)
+		return -1;
 
 
 	LOGPRINTF(_LOG_DEBUG, "Elements: %u Rounded size: %u Optimal depth: %u", _len, virtual_len, n);
@@ -113,6 +119,9 @@ int tree_balanced_insert ( tree_node_t** _root, void*  _data[], char* _key[], un
 			}
 		}
 	}
+
+	free( indices );
+	indices = NULL;
 
 	return 0;
 }

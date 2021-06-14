@@ -12,19 +12,19 @@ int dns_construct_header ( char* _buffer, int _bufflen, dns_header_t* _header )
 
 	*((uint16_t*)_buffer) = _header->id; /* Since only copied, no flipping necessary */
 	_buffer[2] =
-		((_header->QR & 0x01) << 7) |
-		((_header->OPCODE & 0x0F) << 3) |
-		((_header->AA & 0x01) << 2) |
-		((_header->TC & 0x01) << 1) |
-		( _header->RD & 0x01);
+		(char)((_header->QR & 0x01) << 7) |
+		(char)((_header->OPCODE & 0x0F) << 3) |
+		(char)((_header->AA & 0x01) << 2) |
+		(char)((_header->TC & 0x01) << 1) |
+		(char)( _header->RD & 0x01);
 	_buffer[3] =
-		((_header->RA & 0x01) << 7) |
-		((_header->Z  & 0x07) << 4) |
-		( _header->RCODE & 0x0F);
-	*((uint16_t*)(_buffer + 4 )) = FLIP_BYTES(_header->question_count);
-	*((uint16_t*)(_buffer + 6 )) = FLIP_BYTES(_header->answer_count);
-	*((uint16_t*)(_buffer + 8 )) = FLIP_BYTES(_header->authorative_count);
-	*((uint16_t*)(_buffer + 10)) = FLIP_BYTES(_header->additional_count);
+		(char)((_header->RA & 0x01) << 7) |
+		(char)((_header->Z  & 0x07) << 4) |
+		(char)( _header->RCODE & 0x0F);
+	*((uint16_t*)(_buffer + 4 )) = (uint16_t)FLIP_BYTES(_header->question_count);
+	*((uint16_t*)(_buffer + 6 )) = (uint16_t)FLIP_BYTES(_header->answer_count);
+	*((uint16_t*)(_buffer + 8 )) = (uint16_t)FLIP_BYTES(_header->authorative_count);
+	*((uint16_t*)(_buffer + 10)) = (uint16_t)FLIP_BYTES(_header->additional_count);
 
 	return DNS_HEADER_LEN;
 }
@@ -43,14 +43,14 @@ int dns_construct_answer (
 	if ( _answer->qname_len + _answer->rdlength + 10 > _bufflen )
 		return -1;
 
-	memcpy( _buffer, _answer->qname, _answer->qname_len );
+	memcpy( _buffer, _answer->qname, (unsigned)_answer->qname_len );
 	ret += _answer->qname_len;
 
-	*((uint16_t*)(_buffer + ret + 0 )) = FLIP_BYTES(_answer->type);
-	*((uint16_t*)(_buffer + ret + 2 )) = FLIP_BYTES(_answer->class);
-	*((uint16_t*)(_buffer + ret + 4 )) = FLIP_BYTES((uint16_t)((_answer->ttl << 16) & 0xffff));
-	*((uint16_t*)(_buffer + ret + 6 )) = FLIP_BYTES((uint16_t)(_answer->ttl & 0xffff));
-	*((uint16_t*)(_buffer + ret + 8 )) = FLIP_BYTES(_answer->rdlength);
+	*((uint16_t*)(_buffer + ret + 0 )) = (uint16_t)FLIP_BYTES(_answer->type);
+	*((uint16_t*)(_buffer + ret + 2 )) = (uint16_t)FLIP_BYTES(_answer->class);
+	*((uint16_t*)(_buffer + ret + 4 )) = (uint16_t)FLIP_BYTES((uint16_t)((_answer->ttl << 16) & 0xffff));
+	*((uint16_t*)(_buffer + ret + 6 )) = (uint16_t)FLIP_BYTES((uint16_t)(_answer->ttl & 0xffff));
+	*((uint16_t*)(_buffer + ret + 8 )) = (uint16_t)FLIP_BYTES(_answer->rdlength);
 	ret += 10;
 
 	memcpy( _buffer + ret, _answer->rdata, _answer->rdlength );
@@ -74,11 +74,11 @@ int dns_construct_questoin (
 	if ( _question->qname_len + 4 > _bufflen )
 		return -1;
 
-	memcpy( _buffer, _question->qname, _question->qname_len );
+	memcpy( _buffer, _question->qname, (unsigned)_question->qname_len );
 	ret += _question->qname_len;
 
-	*((uint16_t*)(_buffer + ret + 0 )) = FLIP_BYTES(_question->qtype);
-	*((uint16_t*)(_buffer + ret + 2 )) = FLIP_BYTES(_question->qclass);
+	*((uint16_t*)(_buffer + ret + 0 )) = (uint16_t)FLIP_BYTES(_question->qtype);
+	*((uint16_t*)(_buffer + ret + 2 )) = (uint16_t)FLIP_BYTES(_question->qclass);
 	ret += 4;
 
 	return ret;
@@ -116,6 +116,8 @@ int dns_destroy_struct ( dns_message_t* _msg )
 int dns_parse_packet ( char* _buffer, int _bufflen, dns_message_t* _msg )
 {
 	int i = 0;
+	size_t qsize;
+	int ptr;
 	/* TODO refactor */
 
 	if ( !_buffer || !_bufflen || !_msg )
@@ -134,10 +136,10 @@ int dns_parse_packet ( char* _buffer, int _bufflen, dns_message_t* _msg )
 	_msg->header.RA = (0x80 & *( (uint8_t*) (_buffer + 3))) >> 7;
 	_msg->header.Z  = (0x70 & *( (uint8_t*) (_buffer + 3))) >> 4;
 	_msg->header.RCODE = (0x0F & *( (uint8_t*) (_buffer + 3)));
-	_msg->question_count = _msg->header.question_count = (*((uint8_t*) (_buffer + 4 )) << 8) | *((uint8_t*) (_buffer + 5 ));
-	_msg->answer_count   = _msg->header.answer_count   = (*((uint8_t*) (_buffer + 6 )) << 8) | *((uint8_t*) (_buffer + 7 ));
-	_msg->header.authorative_count	= (*((uint8_t*) (_buffer + 8 )) << 8) | *((uint8_t*) (_buffer + 9 ));
-	_msg->header.additional_count	= (*((uint8_t*) (_buffer + 10)) << 8) | *((uint8_t*) (_buffer + 11));
+	_msg->question_count = _msg->header.question_count = (uint16_t)(*((uint8_t*) (_buffer + 4 )) << 8) | *((uint8_t*) (_buffer + 5 ));
+	_msg->answer_count   = _msg->header.answer_count   = (uint16_t)(*((uint8_t*) (_buffer + 6 )) << 8) | *((uint8_t*) (_buffer + 7 ));
+	_msg->header.authorative_count	= (uint16_t)(*((uint8_t*) (_buffer + 8 )) << 8) | *((uint8_t*) (_buffer + 9 ));
+	_msg->header.additional_count	= (uint16_t)(*((uint8_t*) (_buffer + 10)) << 8) | *((uint8_t*) (_buffer + 11));
 
 	/* TODO remove */
 	/*printf("ANSWER %i\n", _msg->header.answer_count);
@@ -158,7 +160,7 @@ int dns_parse_packet ( char* _buffer, int _bufflen, dns_message_t* _msg )
 	 * Allocate question array
 	 * TODO Only implements question section.
 	 */
-	size_t qsize = sizeof(*(_msg->question)) * _msg->question_count;
+	qsize = sizeof(*(_msg->question)) * (unsigned)_msg->question_count;
 	_msg->question_count = _msg->header.question_count;
 	_msg->question = malloc ( qsize );
 	memset( _msg->question, 0, qsize );
@@ -166,7 +168,7 @@ int dns_parse_packet ( char* _buffer, int _bufflen, dns_message_t* _msg )
 	if (!_msg->question) /* malloc failed */
 		return 1;
 
-	int ptr = 12; /* byte counter */
+	ptr = 12; /* byte counter */
 
 	/* TODO refactor */
 	for ( i = 0; i < _msg->question_count; i++ ) {
@@ -182,9 +184,9 @@ int dns_parse_packet ( char* _buffer, int _bufflen, dns_message_t* _msg )
 		if( ptr >= (_bufflen - 4) ) /* Out of bounds check */
 			return 1;
 
-		_msg->question[i].qtype =  ((uint8_t)*(_buffer + ptr) << 8) | ((uint8_t)*(_buffer + ptr + 1));
+		_msg->question[i].qtype = (uint16_t)((uint8_t)*(_buffer + ptr) << 8) | ((uint8_t)*(_buffer + ptr + 1));
 		ptr += 2;
-		_msg->question[i].qclass = ((uint8_t)*(_buffer + ptr) << 8) | ((uint8_t)*(_buffer + ptr + 1));
+		_msg->question[i].qclass = (uint16_t)((uint8_t)*(_buffer + ptr) << 8) | ((uint8_t)*(_buffer + ptr + 1));
 		ptr += 2;
 
 	}
@@ -213,12 +215,12 @@ int fqdn_to_qname( char* _source, int _sourcelen, char* _sink ,int _sinklen )
 
 	for (o = 0; o < i; o++) {
 		if( _sink[o] == '.') {
-			_sink[lastdot] = o - lastdot - 1;
+			_sink[lastdot] = (char)(o - lastdot - 1);
 			lastdot = o;
 		}
 	}
 
-	_sink[lastdot] = i - lastdot;
+	_sink[lastdot] = (char)(i - lastdot);
 	_sink[i + 1] = 0;
 
 	return i+2;
@@ -226,15 +228,17 @@ int fqdn_to_qname( char* _source, int _sourcelen, char* _sink ,int _sinklen )
 
 int qname_to_fqdn( char* _source, int _sourcelen, char* _sink, int _sinklen )
 {
-	unsigned int next_dot = _source[0] + 1;
-	int i = 1;
+	unsigned int next_dot;
+	unsigned int i = 1;
 
 	if ( !_sourcelen || !_sinklen ) {
 		return -1;
 	}
 
-	for(i = 1; i < _sourcelen; i++) {
-		if( i > _sinklen){ /* Output too small. Not >= bc sink[i-1] is used */
+	next_dot = (unsigned)_source[0] + 1;
+
+	for(i = 1; i < (unsigned)_sourcelen; i++) {
+		if( i > (unsigned)_sinklen){ /* Output too small. Not >= bc sink[i-1] is used */
 			return -1;
 		}
 		if ( !_source[i] ) {
@@ -242,12 +246,13 @@ int qname_to_fqdn( char* _source, int _sourcelen, char* _sink, int _sinklen )
 			break;
 		} else if (i == next_dot) {
 			_sink[i-1]='.';
-			next_dot = _source[i] + i + 1;
+			next_dot = (unsigned)_source[i] + i + 1;
 		} else {
 			_sink[i-1] = _source[i];
 		}
 	}
-	return i-1;
+
+	return (signed)i-1;
 }
 
 int qname_check( char* _source, int _sourcelen )

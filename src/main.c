@@ -12,10 +12,6 @@
 #include "log.h"
 #include "server.h"
 
-#ifdef _TEST
-#include "test.h"
-#endif
-
 void print_help( char *_argv0 ) {
 	printf(
 		"dns\n"
@@ -29,15 +25,15 @@ void print_help( char *_argv0 ) {
 }
 
 void parse_args( server_config_t *_config, int argc, char* argv[]) {
-	int i, o;
+	unsigned int i, o;
 	memset( _config, 0, sizeof( server_config_t ) );
 
 	_config->bind_ip = "0.0.0.0";
 	_config->bind_port = 53;
 	_config->zonefile = "/nofile";
 
-	for( i = 1; i < argc; i++ ) {
-		const int icpy = i;
+	for( i = 1; i < (unsigned int)argc; i++ ) {
+		const unsigned int icpy = i;
 		if ( argv[i][0] != '-' ) {
 			print_help( argv[0] );
 			exit( 1 );
@@ -52,7 +48,7 @@ void parse_args( server_config_t *_config, int argc, char* argv[]) {
 					_config->bind_ip = argv[++i];
 					break;
 				case 'p':
-					_config->bind_port = atoi( argv[++i] );
+					_config->bind_port = (uint16_t)atoi( argv[++i] );
 					break;
 				case 'z':
 					_config->zonefile = argv[++i];
@@ -76,12 +72,8 @@ int main(int argc, char* argv[])
 	if ( getuid() == 0 )
 		LOGPRINTF(_LOG_WARNING, "Running as root is not a good idea. Use setcap or unprivileged port instead.");
 
-	
-#ifdef _TEST
-	run_test();
-#else
 	server_start( &config );
-#endif
+
 	return 0;
 }
 

@@ -1,3 +1,6 @@
+/*
+ * vi: ft=c
+ */
 /* dns.h
  * (c) Jonas Gunz, 2019
  * License: MIT

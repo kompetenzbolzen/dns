@@ -63,4 +63,4 @@ int log_init_file(char* _file, unsigned int _verbosity);
  */
 int log_init_stdout(unsigned int _verbosity);
 
-int log_close();
+int log_close( void );

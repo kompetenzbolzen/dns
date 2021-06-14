@@ -8,12 +8,13 @@
 
 static int database_init ( database_t* _database ) {
 	unsigned int i = 0;
+	size_t rr_size;
 
 	/* Initialize 2D array of tree_node pointers, paranoia style */
 	if ( !( _database->zone = malloc( sizeof( tree_node_t** ) * DB_CLASS_LEN ) ) )
 		return 1;
 
-	size_t rr_size = sizeof( struct tree_node* ) * DB_RR_LEN;
+	rr_size = sizeof( struct tree_node* ) * DB_RR_LEN;
 	for ( i = 0; i < DB_CLASS_LEN; i++ ) {
 		if ( !( _database->zone[i] = malloc( rr_size ) ) )
 			return 1;
@@ -24,10 +25,11 @@ static int database_init ( database_t* _database ) {
 	return 0;
 }
 
-int database_populate (
-	database_t* _database,
-	char* _zonefile
-) {
+int database_populate ( database_t* _database, char* _zonefile ) {
+	char* qname;
+	int len;
+	void* data;
+
 	if ( database_init( _database ) ) {
 		LOGPRINTF(_LOG_ERROR, "Failed to initialize database.");
 		return 1;
@@ -35,14 +37,14 @@ int database_populate (
 
 	/* TODO parsing */
 	
-	char* qname = malloc(32);
+	qname = malloc(32);
 
-	int len = fqdn_to_qname( "test.example.com", 17, qname, 32 );
+	len = fqdn_to_qname( "test.example.com", 17, qname, 32 );
 
 	if ( len <= 0 )
 		return 1;
 
-	void* data = malloc( 10 );
+	data = malloc( 10 );
 
 	*((uint32_t*)data) = 1800;
 	*((uint16_t*)(data+4)) = 4;
@@ -85,6 +87,7 @@ int database_query (
 	uint16_t _qclass
 ) {
 	uint16_t type, class;
+	void* data;
 
 	/* _qtype and _qclass start at 1, so they are invalid when 0. */
 
@@ -105,7 +108,7 @@ int database_query (
 	type  = _qtype  - 1;
 	class = _qclass - 1;
 
-	void* data = tree_get( &_database->zone[class][type], _qname );
+	data = tree_get( &_database->zone[class][type], _qname );
 
 	if ( !data ) {
 		LOGPRINTF(_LOG_DEBUG, "No matching RR found");

@@ -42,4 +42,4 @@ void server_handle_connection ( int _socket, database_t* _zone_db );
 
 int server_get_socket ( char* _bind_ip, uint16_t _bind_port );
 
-void signal_term ( );
+void signal_term ( int _sig );

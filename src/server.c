@@ -43,12 +43,10 @@ void server_start ( server_config_t* _config )
 			server_handle_connection( sock_server, &zone_db );
 		}
 	}
-
-	exit(0);
 }
 
 void server_handle_connection ( int _socket, database_t* _zone_db ) {
-	unsigned int i;
+	int i;
 
 	char recv_buffer[ UDP_BUFFER_LEN ];
 	int  recv_len = 0;
@@ -124,7 +122,7 @@ void server_handle_connection ( int _socket, database_t* _zone_db ) {
 
 	dns_construct_header( answ_buffer, answ_len, &answ_header );
 
-	sendto( _socket, answ_buffer, answ_cnt, 0, (struct sockaddr*) &sock_client_addr, sock_client_addr_len );
+	sendto( _socket, answ_buffer, (size_t)answ_cnt, 0, (struct sockaddr*) &sock_client_addr, sock_client_addr_len );
 
 end:
 	dns_destroy_struct ( &dns_req );
@@ -160,7 +158,7 @@ int server_get_socket ( char* _bind_ip, uint16_t _bind_port ) {
 	return server_socket;
 }
 
-void signal_term ( ) {
+void signal_term ( int _sig ) {
 	LOGPRINTF( _LOG_NOTE, "Server shutting down" );
 	close( sock_server );
 	exit(0);
