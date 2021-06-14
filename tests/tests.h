@@ -13,3 +13,4 @@
 #include <string.h>
 
 TCase* test_dns(void);
+TCase* test_tree(void);

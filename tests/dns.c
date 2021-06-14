@@ -38,13 +38,39 @@ START_TEST (dns_qname_fuzz) {
 	}
 
 	ck_assert_float_le( (float)valid_cnt / (float)limit * 100, 10);
-}
+} END_TEST
+
+START_TEST (dns_message_fuzz) {
+	const unsigned long int limit = 1000000;
+	unsigned long int valid_cnt = 0;
+	unsigned long int i;
+
+	struct dns_message msg;
+
+	FILE* urand = fopen ("/dev/urandom", "r");
+	char rand[128];
+
+	if (!urand)
+		ck_abort_msg("Failed to open /dev/urandom");
+
+
+	for (i = 0; i < limit; i++) {
+		if (fread (rand, 128, 1, urand) > 0) {
+			if ( ! dns_parse_packet(rand, 128, &msg) ) {
+				valid_cnt++;
+			}
+		}
+	}
+
+	ck_assert_float_le( (float)valid_cnt / (float)limit * 100, 10);
+} END_TEST
 
 TCase* test_dns(void) {
 	TCase *tc = tcase_create("DNS");
 
 	tcase_add_test(tc, dns_qname);
 	tcase_add_test(tc, dns_qname_fuzz);
+	tcase_add_test(tc, dns_message_fuzz);
 
 	return tc;
 }
