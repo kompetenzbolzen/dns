@@ -1,5 +1,8 @@
 CC              = clang
-CFLAGS          = -Wall -std=c89 -D_DEFAULT_SOURCE -Wvla
+CFLAGS          = -Wall -std=c89 -D_DEFAULT_SOURCE -Wvla \
+		  -Wdeclaration-after-statement -Wstrict-prototypes -Wpadded \
+		  -Wunreachable-code -Wsign-compare -Wimplicit-int-conversion \
+		  -Wsign-conversion
 LDFLAGS         = -lm
 BUILDDIR        = build
 SOURCEDIR       = src
