@@ -1,6 +1,6 @@
 CC              = clang
 CFLAGS          = -Wall -std=c89 -D_DEFAULT_SOURCE -Wvla \
-		  -Wdeclaration-after-statement -Wstrict-prototypes -Wpadded \
+		  -Wdeclaration-after-statement -Wstrict-prototypes \
 		  -Wunreachable-code -Wsign-compare -Wimplicit-int-conversion \
 		  -Wsign-conversion
 LDFLAGS         = -lm
@@ -21,6 +21,8 @@ TESTS = $(wildcard $(TESTDIR)/*.c)
 TOBJS = $(TESTS:.c=.o)
 TSUBS = $(filter-out $(OBJECTDIR)/main.o,$(OBJ))
 
+RUNARGS = -p 5333
+
 build: dir $(OBJ)
 	@echo [LD] $(OBJ)
 	@$(CC) $(CFLAGS) -o $(BUILDDIR)/$(OUTPUT) $(OBJ) $(LDFLAGS)
@@ -28,10 +30,12 @@ build: dir $(OBJ)
 debug: CFLAGS += -g -D _DEBUG
 debug: build;
 
-test: LDFLAGS += -lcheck
-test: dir $(TOBJS) $(TSUBS)
+build_test: LDFLAGS += -lcheck
+build_test: dir $(TOBJS) $(TSUBS)
 	@echo [LD] $(TOBJS) $(TSUBS)
 	@$(CC) $(TESTFLAGS) -o $(TESTDIR)/run $(TOBJS) $(TSUBS) $(LDFLAGS)
+
+test: build_test
 	@$(TESTDIR)/run
 
 dir:
@@ -49,7 +53,7 @@ $(TESTDIR)/%.o: $(TESTDIR)/%.c
 #sudo setcap 'cap_net_bind_service=+ep' /path/to/prog
 #to allow port access
 run: build
-	$(BUILDDIR)/$(OUTPUT)
+	$(BUILDDIR)/$(OUTPUT) $(RUNARGS)
 
 .PHONY: clean
 clean:
