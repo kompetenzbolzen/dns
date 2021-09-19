@@ -38,6 +38,10 @@ build_test: dir $(TOBJS) $(TSUBS)
 test: build_test
 	@$(TESTDIR)/run
 
+valgrind_test: CFLAGS += -g
+valgrind_test: build_test
+	@CK_FORK=no valgrind --leak-check=full $(TESTDIR)/run
+
 dir:
 	@mkdir -p $(OBJECTDIR)
 	@mkdir -p $(BUILDDIR)
