@@ -8,9 +8,9 @@ This is a work-in-progress.
 
 Build with
 
-´´´
+```
 make build
-´´´
+```
 
 executable is in `build/dnsd`
 
