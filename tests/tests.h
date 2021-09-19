@@ -14,3 +14,4 @@
 
 TCase* test_dns(void);
 TCase* test_tree(void);
+TCase* test_zonefile(void);
