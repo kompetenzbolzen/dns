@@ -210,8 +210,10 @@ int fqdn_to_qname( char* _source, int _sourcelen, char* _sink ,int _sinklen )
 		_sink[i+1] = _source[i];
 	}
 
-	if( _source[i] ) /* _source not terminated, thus no valid string */
+	if( _source[i] ) {
+		_sink[0] = 0; /* ensure _sink is terminated */
 		return -1;
+	}
 
 	for (o = 0; o < i; o++) {
 		if( _sink[o] == '.') {
@@ -239,6 +241,7 @@ int qname_to_fqdn( char* _source, int _sourcelen, char* _sink, int _sinklen )
 
 	for(i = 1; i < (unsigned)_sourcelen; i++) {
 		if( i > (unsigned)_sinklen){ /* Output too small. Not >= bc sink[i-1] is used */
+			_sink[0] = 0; /* ensure _sink is terminated */
 			return -1;
 		}
 		if ( !_source[i] ) {
@@ -263,9 +266,7 @@ int qname_check( char* _source, int _sourcelen )
 	if (!_sourcelen)
 		return -1;
 
-
 	/* TODO questionable control flow */
-	/* TODO add ASCII prrintable check */
 	for (i = 0; i < _sourcelen; i++) {
 		if ( i == next_dot ) {
 			if (_source[i]) { /* Not last dot */
@@ -274,6 +275,13 @@ int qname_check( char* _source, int _sourcelen )
 				return i+1;
 			}
 		} else if (!_source[i]) { /* Unexpected \0 */
+			return -1;
+		} else if (
+			!(_source[i]>='0' && _source[i]<='9') &&
+			!(_source[i]>='A' && _source[i]<='Z') &&
+			!(_source[i]>='a' && _source[i]<='z') &&
+			!(_source[i]== '-') && !(_source[i]=='_')
+			) {
 			return -1;
 		}
 	}

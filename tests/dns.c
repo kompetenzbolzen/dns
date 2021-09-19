@@ -11,12 +11,19 @@
 START_TEST (dns_qname) {
 	char in[128];
 	char out[128];
+	char* fqdn = "sub.domain.example.com";
+	char* inval_fqdn = "is!this.domain.invalid?";
 
-	strncpy ( in, "sub.domain.example.com\0", 127);
+	strncpy ( in, fqdn , 127);
 
 	ck_assert_int_gt( fqdn_to_qname (in,128,out,128), 0 );
-	ck_assert_int_ge( qname_check(out,128), 0 );
+	ck_assert_int_ge( qname_check (out,128), 0 );
 	ck_assert_int_gt( qname_to_fqdn (out,128,in,128), 0);
+	ck_assert_str_eq( in, fqdn );
+
+	/* Check for working invalid protection */
+	ck_assert_int_gt( fqdn_to_qname (inval_fqdn,strlen(inval_fqdn),out,128), 0 );
+	ck_assert_int_lt( qname_check(out,128), 0 );
 } END_TEST
 
 START_TEST (dns_qname_fuzz) {
