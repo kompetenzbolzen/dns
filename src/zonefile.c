@@ -6,25 +6,37 @@
 
 #include "zonefile.h"
 
-int zonefile_parse_line(database_t *_database, char *_line) {
+int zonefile_string_split(char* _parts[], ssize_t _max, char* _str, char _delim) {
 	unsigned int i, o, start;
+
+	start = 0;
+	for ( i=0; i < _max; i++ ) {
+		for ( o=start; _str[o] && _str[o] != ' '; o++ );
+
+		_parts[i] = &_str[start];
+
+		if(!_str[o])
+			break;
+
+		_str[o] = '\0';
+
+		start = o+1;
+	}
+
+	return (int)i + 1;
+}
+
+int zonefile_parse_line(database_t *_database, char *_line) {
 	char *parts[5];
+	int parts_len;
 
 	/* Does this work? */
 	memset(&parts, 0, sizeof(parts));
 
-	start = 0;
-	for ( i=0; i < 4; i++ ) {
-		for ( o=start; _line[o] && _line[o] != ' '; o++ );
-
-		parts[i] = &_line[start];
-
-		if(!_line[o])
-			break;
-
-		_line[o] = '\0';
-
-		start = o+1;
+	parts_len = zonefile_string_split(parts, 4, _line, ' ');
+	if (parts_len != 4) {
+		LOGPRINTF(_LOG_ERROR, "Incomplete");
+		return -1;
 	}
 
 	/* parts is the first 5 space-seperated parts of _line */
@@ -44,11 +56,13 @@ int zonefile_to_database (database_t *_database, char* _file) {
 		return -1;
 	}
 
+	DEBUG("Parsing zonefile %s", _file)
+
 	while(!feof(zfile)) {
 		line_cnt ++;
 		line_len = getline(&line, 0, zfile);
 
-		/* getline includes the line break. ONLY UNIX!! */
+		/* getline includes the line break. ONLY UNIX ENDINGS!! */
 		if( line[line_len - 2] == '\n' )
 			line[line_len - 2] = '\0';
 
