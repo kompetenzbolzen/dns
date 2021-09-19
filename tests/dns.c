@@ -23,7 +23,8 @@ START_TEST (dns_qname) {
 
 	/* Check for working invalid protection */
 	ck_assert_int_gt( fqdn_to_qname (inval_fqdn,strlen(inval_fqdn),out,128), 0 );
-	ck_assert_int_lt( qname_check(out,128), 0 );
+	ck_assert_int_ne( qname_check(out,128), 0 );
+	ck_assert_int_ne( fqdn_check(inval_fqdn,strlen(inval_fqdn)), 0 );
 } END_TEST
 
 START_TEST (dns_qname_fuzz) {
@@ -44,6 +45,7 @@ START_TEST (dns_qname_fuzz) {
 		}
 	}
 
+	/* Do not allow more than 10% false-positives */
 	ck_assert_float_le( (float)valid_cnt / (float)limit * 100, 10);
 } END_TEST
 
@@ -69,6 +71,7 @@ START_TEST (dns_message_fuzz) {
 		}
 	}
 
+	/* Do not allow more than 10% false-positives */
 	ck_assert_float_le( (float)valid_cnt / (float)limit * 100, 10);
 } END_TEST
 

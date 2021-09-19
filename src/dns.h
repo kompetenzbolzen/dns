@@ -198,6 +198,12 @@ int dns_parse_packet ( char* _buffer, int _bufflen, dns_message_t* _msg );
 int fqdn_to_qname( char* _source, int _sourcelen, char* _sink, int _sinklen );
 
 /**
+ * Check FQDN validity
+ * Returns: 0 when valid, <0 for string errors, position > 0 of invalid character
+ */
+int fqdn_check ( char* _source, int _sourcelen );
+
+/**
  * Convert a QNAME back to a FQDN, reversing fqdn_to_qname( )
  * returns: length of string in _sink, < 0 on failure
  * _sink may still be altered in failed attempts, but not terminated.

@@ -228,6 +228,35 @@ int fqdn_to_qname( char* _source, int _sourcelen, char* _sink ,int _sinklen )
 	return i+2;
 }
 
+int fqdn_check ( char* _source, int _sourcelen ) {
+	int i;
+	char c;
+
+	if ( !_source || _sourcelen <= 0 )
+		return -1;
+
+	for( i=0; i<_sourcelen; i++ ) {
+		c = _source[i];
+		if (!c)
+			break;
+		if (
+			!(c>='0' && c<='9') &&
+			!(c>='A' && c<='Z') &&
+			!(c>='a' && c<='z') &&
+			!(c== '-') && !(c=='_') && !(c=='.')
+			) {
+			return i+1;
+		}
+	}
+
+	if ( _source[ i-1 ] != '.' )
+		return i;
+	if ( _source[ 0 ] == '-' )
+		return 1;
+
+	return 0;
+}
+
 int qname_to_fqdn( char* _source, int _sourcelen, char* _sink, int _sinklen )
 {
 	unsigned int next_dot;
