@@ -15,16 +15,19 @@ START_TEST(tree_basic) {
 
 	unsigned const int len = pow ( 'z' - 'a' + 1, 2);
 	unsigned int len_cnt = 0;
-	char* keys[len];
-	char* data[len];
+	char** keys;
+	char** data;
 
 	struct tree_node* root = NULL;
+
+	keys = malloc(len * sizeof(char*));
+	data = malloc(len * sizeof(char*));
 
 	for ( i = 'a'; i <= 'z'; i++ ) {
 		for ( j = 'a'; j <= 'z'; j++ ) {
 			keys[len_cnt] = malloc (3);
-			keys[len_cnt][0] = i;
-			keys[len_cnt][1] = j;
+			keys[len_cnt][0] = (char)i;
+			keys[len_cnt][1] = (char)j;
 			keys[len_cnt][2] = 0;
 
 			data[len_cnt] = malloc(10);
@@ -41,6 +44,9 @@ START_TEST(tree_basic) {
 	}
 
 	ck_assert_int_eq( tree_destroy (&root, _TREE_FREE_DATA | _TREE_FREE_KEY), 0 );
+
+	free(keys);
+	free(data);
 } END_TEST
 
 TCase* test_tree(void) {
