@@ -13,3 +13,5 @@ compile_commands.json
 *.gcda
 *.profraw
 *.profdata
+
+vgcore.*
