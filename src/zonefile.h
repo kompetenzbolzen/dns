@@ -12,6 +12,7 @@
 
 #include "database.h"
 #include "log.h"
+#include "record.h"
 
 /**
  * NOT COMPATIBLE WITH STANDARD ZONEFILES!

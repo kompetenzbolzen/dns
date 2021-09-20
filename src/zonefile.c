@@ -34,6 +34,9 @@ int zonefile_parse_line(database_t *_database, char *_line) {
 	uint32_t ttl;
 	uint16_t type, class;
 	void* data;
+	ssize_t data_len;
+
+	void* db_entry;
 
 	memset(&parts, 0, sizeof(parts));
 
@@ -48,8 +51,8 @@ int zonefile_parse_line(database_t *_database, char *_line) {
 		LOGPRINTF(_LOG_ERROR, "FQDN Contains invalid char at pos %i", ret);
 		return -1;
 	}
-	qname = malloc( (unsigned)fqdn_len+1 );
-	if ( fqdn_to_qname(parts[0], fqdn_len, qname, fqdn_len+1) < 0) {
+	qname = malloc( (unsigned)fqdn_len+2 );
+	if ( fqdn_to_qname(parts[0], fqdn_len, qname, fqdn_len+2) < 0) {
 		LOGPRINTF(_LOG_ERROR, "Failed to convert to QNAME. This is a bug.");
 		return -1;
 	}
@@ -59,9 +62,42 @@ int zonefile_parse_line(database_t *_database, char *_line) {
 		return -1;
 	}
 
-	DEBUG("value %s", parts[4]);
+	if ( (class = record_class_from_str(parts[2])) == 0 ) {
+		LOGPRINTF(_LOG_ERROR, "Invalid class %s", parts[2]);
+		return -1;
+	}
 
+	if ( (type = record_type_from_str(parts[3])) == 0 ) {
+		LOGPRINTF(_LOG_ERROR, "Invalid record type %s", parts[3]);
+		return -1;
+	}
+
+	if ( (data_len = record_rdata_from_str(&data, parts[4], type)) <= 0 ) {
+		LOGPRINTF(_LOG_ERROR, "Invalid rdata %s", parts[4]);
+		return -1;
+	}
+
+	db_entry = malloc((unsigned)data_len + 6);
+	if ( !db_entry )
+		goto err;
+
+	DEBUG("Found %s record at %s", parts[3], parts[0]);
+
+	*((uint32_t*)db_entry) = ttl;
+	*((uint16_t*)db_entry+4) = (uint16_t) data_len;
+	strncpy(db_entry+6, data, (unsigned)data_len);
+
+	/* Error Here */
+	DEBUG("LEN: %u, %i", *( (uint16_t*)(db_entry + 4) ), data_len);
+
+	/* This breaks abstraction boundries! */
+	ret = tree_insert( &_database->zone[class-1][type-1], qname, db_entry );
+
+
+	free(data);
 	return 0;
+err:
+	free(data);
 	return -1;
 }
 
@@ -87,8 +123,8 @@ int zonefile_to_database (database_t *_database, char* _file) {
 		DEBUG("line %u, length %li, allocated %lu", line_cnt, line_len, llen);
 
 		/* getline includes the line break. ONLY UNIX ENDINGS!! */
-		if( line[line_len - 2] == '\n' )
-			line[line_len - 2] = '\0';
+		if( line[line_len - 1] == '\n' )
+			line[line_len - 1] = '\0';
 
 		if ( zonefile_parse_line(_database, line) < 0) {
 			LOGPRINTF(_LOG_ERROR, "Error is in line %u", line_cnt)
