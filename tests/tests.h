@@ -15,3 +15,4 @@
 TCase* test_dns(void);
 TCase* test_tree(void);
 TCase* test_zonefile(void);
+TCase* test_record(void);

@@ -20,6 +20,7 @@ int main() {
 	suite_add_tcase(s, test_dns());
 	suite_add_tcase(s, test_tree());
 	suite_add_tcase(s, test_zonefile());
+	suite_add_tcase(s, test_record());
 
 	sr = srunner_create(s);
 	srunner_run_all(sr,CK_VERBOSE);

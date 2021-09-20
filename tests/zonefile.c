@@ -35,7 +35,7 @@ START_TEST (test_zonefile_string_split) {
 } END_TEST
 
 TCase* test_zonefile(void) {
-	TCase *tc = tcase_create("DNS");
+	TCase *tc = tcase_create("zonefile");
 
 	tcase_add_test(tc, test_zonefile_string_split);
 
