@@ -30,7 +30,7 @@
  * Anything other than IN is probably never needed, but easier to do now than later.
  *
  * Data format in tree void*
- * 0     4     6         2+len
+ * 0     4     6         6+len
  * | ttl | len | data ... |
  * ttl: uint32_t
  * len: uint16_t
