@@ -194,15 +194,16 @@ int dns_parse_packet ( char* _buffer, int _bufflen, dns_message_t* _msg )
 	return 0;
 }
 
-int fqdn_to_qname( char* _source, int _sourcelen, char* _sink ,int _sinklen )
+int fqdn_to_qname( char* _source, int _sourcelen, char* _sink, int _sinklen )
 {
 	int i, o;
 	int lastdot = 0;
 
+	/* TODO Bounds checking!! */
 	if (_sourcelen < 1 || _sinklen < 1)
 		return -1;
 
-	_sink[0] = ' '; /* Set to known value */
+	_sink[0] = '\0'; /* Ensure termination */
 
 	for(i = 0; ((i < _sourcelen) && (i < (_sinklen - 1))); i++) { /* Copy offset 1 */
 		if(! _source[i])
@@ -210,19 +211,18 @@ int fqdn_to_qname( char* _source, int _sourcelen, char* _sink ,int _sinklen )
 		_sink[i+1] = _source[i];
 	}
 
-	if( _source[i] ) {
-		_sink[0] = 0; /* ensure _sink is terminated */
+	if( _source[i] )
 		return -1;
-	}
 
-	for (o = 0; o < i; o++) {
+	for (o = 0; o <= i; o++) {
 		if( _sink[o] == '.') {
 			_sink[lastdot] = (char)(o - lastdot - 1);
 			lastdot = o;
 		}
 	}
 
-	_sink[lastdot] = (char)(i - lastdot);
+	/* TODO is that needed? */
+	_sink[lastdot] = (char)(o - lastdot - 1);
 	_sink[i + 1] = 0;
 
 	return i+2;
@@ -274,7 +274,8 @@ int qname_to_fqdn( char* _source, int _sourcelen, char* _sink, int _sinklen )
 			return -1;
 		}
 		if ( !_source[i] ) {
-			_sink[i-1] = '\0';
+			_sink[i-1] = '.';
+			_sink[i] = '\0';
 			break;
 		} else if (i == next_dot) {
 			_sink[i-1]='.';
@@ -292,6 +293,7 @@ int qname_check( char* _source, int _sourcelen )
 	int next_dot = 0;
 	int i = 0;
 
+	/* TODO Bounds checking!! */
 	if (!_sourcelen)
 		return -1;
 

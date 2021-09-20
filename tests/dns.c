@@ -11,7 +11,7 @@
 START_TEST (dns_qname) {
 	char in[128];
 	char out[128];
-	char* fqdn = "sub.domain.example.com";
+	char* fqdn = "sub.domain.example.com.";
 	char* inval_fqdn = "is!this.domain.invalid?";
 
 	strncpy ( in, fqdn , 127);
