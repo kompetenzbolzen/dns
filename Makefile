@@ -27,7 +27,12 @@ TESTS = $(wildcard $(TESTDIR)/*.c)
 TOBJS = $(TESTS:.c=.o)
 TSUBS = $(filter-out $(OBJECTDIR)/main.o,$(OBJ))
 
-RUNARGS = -p 5333
+RUNARGS = -p 5333 -z tests/zone.file
+
+# default build target
+DEFAULT = debug
+
+default: $(DEFAULT)
 
 build: dir $(OBJ)
 	@echo [LD] $(OBJ)
@@ -69,7 +74,7 @@ $(TESTDIR)/%.o: $(TESTDIR)/%.c
 
 #sudo setcap 'cap_net_bind_service=+ep' /path/to/prog
 #to allow port access
-run: build
+run: $(DEFAULT)
 	$(BUILDDIR)/$(OUTPUT) $(RUNARGS)
 
 .PHONY: clean
@@ -83,7 +88,7 @@ clean:
 	@rm -f coverage.html
 
 .PHONY: all
-all: clean build
+all: clean $(DEFAULT)
 
 devsetup:
 	@echo "[" > compile_commands.json
