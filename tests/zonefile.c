@@ -23,8 +23,7 @@ START_TEST (test_zonefile_string_split) {
 	str = malloc(str_len);
 	strncpy(str, refstr, str_len);
 
-	for (i=0; i<4; i++)
-		parts[i] = NULL;
+	memset(&parts, 0, sizeof(parts));
 
 	len = zonefile_string_split(parts, 4, str, ' ');
 	ck_assert_int_eq(len, 4);

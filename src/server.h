@@ -26,6 +26,7 @@
 #include "dns.h"
 #include "log.h"
 #include "database.h"
+#include "zonefile.h"
 
 #define UDP_BUFFER_LEN 512
 

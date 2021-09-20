@@ -6,7 +6,7 @@
 
 #include "database.h"
 
-static int database_init ( database_t* _database ) {
+int database_init ( database_t* _database ) {
 	unsigned int i = 0;
 	size_t rr_size;
 
@@ -21,38 +21,6 @@ static int database_init ( database_t* _database ) {
 
 		memset( _database->zone[i], 0, rr_size );
 	}
-
-	return 0;
-}
-
-int database_populate ( database_t* _database, char* _zonefile ) {
-	char* qname;
-	int len;
-	void* data;
-
-	if ( database_init( _database ) ) {
-		LOGPRINTF(_LOG_ERROR, "Failed to initialize database.");
-		return 1;
-	}
-
-	/* TODO parsing */
-	
-	qname = malloc(32);
-
-	len = fqdn_to_qname( "test.example.com", 17, qname, 32 );
-
-	if ( len <= 0 )
-		return 1;
-
-	data = malloc( 10 );
-
-	*((uint32_t*)data) = 1800;
-	*((uint16_t*)(data+4)) = 4;
-	*((uint32_t*)(data+6)) = 0x45454545;
-	
-	tree_insert( &_database->zone[0][0], qname, data );
-
-	LOGPRINTF(_LOG_NOTE, "Database initialized and populated");
 
 	return 0;
 }

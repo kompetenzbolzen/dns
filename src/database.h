@@ -50,10 +50,7 @@ typedef struct database_rdata {
 	uint32_t ttl;
 } database_rdata_t;
 
-int database_populate (
-	database_t* _database,
-	char* _zonefile
-);
+int database_init ( database_t* _database );
 
 int database_destroy ( database_t* _database );
 

@@ -18,8 +18,13 @@ void server_start ( server_config_t* _config )
 	signal ( SIGTERM, signal_term );
 	signal ( SIGINT,  signal_term );
 
-	if ( database_populate( &zone_db, _config->zonefile ) ) {
-		LOGPRINTF(_LOG_ERRNO, "Failed to populate database from zonefile");
+	if ( database_init( &zone_db ) ) {
+		LOGPRINTF(_LOG_ERROR, "Failed create database");
+		exit(1);
+	}
+
+	if ( zonefile_to_database( &zone_db, _config->zonefile ) ) {
+		LOGPRINTF(_LOG_ERROR, "Failed populate database");
 		exit(1);
 	}
 

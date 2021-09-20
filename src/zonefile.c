@@ -28,25 +28,47 @@ int zonefile_string_split(char* _parts[], ssize_t _max, char* _str, char _delim)
 
 int zonefile_parse_line(database_t *_database, char *_line) {
 	char *parts[5];
-	int parts_len;
+	int parts_len, ret, fqdn_len;
 
-	/* Does this work? */
+	char* qname;
+	uint32_t ttl;
+	uint16_t type, class;
+	void* data;
+
 	memset(&parts, 0, sizeof(parts));
 
-	parts_len = zonefile_string_split(parts, 4, _line, ' ');
-	if (parts_len != 4) {
-		LOGPRINTF(_LOG_ERROR, "Incomplete");
+	parts_len = zonefile_string_split(parts, 5, _line, ' ');
+	if (parts_len != 5) {
+		LOGPRINTF(_LOG_ERROR, "Statement is incomplete");
 		return -1;
 	}
 
-	/* parts is the first 5 space-seperated parts of _line */
+	fqdn_len = strlen(parts[0]);
+	if ( (ret = fqdn_check(parts[0], fqdn_len)) ) {
+		LOGPRINTF(_LOG_ERROR, "FQDN Contains invalid char at pos %i", ret);
+		return -1;
+	}
+	qname = malloc( (unsigned)fqdn_len+1 );
+	if ( fqdn_to_qname(parts[0], fqdn_len, qname, fqdn_len+1) < 0) {
+		LOGPRINTF(_LOG_ERROR, "Failed to convert to QNAME. This is a bug.");
+		return -1;
+	}
 
+	if ( !(ttl = (uint16_t) atoi(parts[1])) ) {
+		LOGPRINTF(_LOG_ERROR, "Invalid TTL");
+		return -1;
+	}
+
+	DEBUG("value %s", parts[4]);
+
+	return 0;
 	return -1;
 }
 
 int zonefile_to_database (database_t *_database, char* _file) {
 	FILE *zfile = NULL;
-	char *line = NULL;
+	char *line  = NULL;
+	size_t llen = 0;
 	ssize_t line_len  = 0;
 	unsigned int line_cnt = 0;
 
@@ -56,11 +78,13 @@ int zonefile_to_database (database_t *_database, char* _file) {
 		return -1;
 	}
 
-	DEBUG("Parsing zonefile %s", _file)
+	DEBUG("Parsing zonefile %s", _file);
+	/* TODO Make resilient to evil empty lines */
 
-	while(!feof(zfile)) {
+	while( (line_len = getline(&line, &llen, zfile)) >= 0 ) {
 		line_cnt ++;
-		line_len = getline(&line, 0, zfile);
+
+		DEBUG("line %u, length %li, allocated %lu", line_cnt, line_len, llen);
 
 		/* getline includes the line break. ONLY UNIX ENDINGS!! */
 		if( line[line_len - 2] == '\n' )
@@ -76,6 +100,6 @@ int zonefile_to_database (database_t *_database, char* _file) {
 	}
 
 	fclose(zfile);
-	return -1;
+	return 0;
 }
 
