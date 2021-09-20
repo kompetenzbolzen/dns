@@ -49,6 +49,7 @@ test: build_test
 	@echo [EXEC] $(TESTDIR)/run
 	@$(TESTDIR)/run
 
+valgrind_test: CFLAGS += -g
 valgrind_test: build_test
 	@CK_FORK=no valgrind --leak-check=full $(TESTDIR)/run
 
