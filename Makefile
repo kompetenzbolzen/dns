@@ -35,17 +35,18 @@ DEFAULT = debug
 default: $(DEFAULT)
 
 build: dir $(OBJ)
-	@echo [LD] $(OBJ)
+	@echo [ LD ] $(OBJ)
 	@$(CC) $(CFLAGS) -o $(BUILDDIR)/$(OUTPUT) $(OBJ) $(LDFLAGS)
 
 debug: CFLAGS += -g -D_DEBUG
 debug: build;
 
 build_test: dir $(TOBJS) $(TSUBS)
-	@echo [LD] $(TOBJS) $(TSUBS)
+	@echo [ LD ] $(TOBJS) $(TSUBS)
 	@$(CC) $(TESTCFLAGS) -o $(TESTDIR)/run $(TOBJS) $(TSUBS) $(TESTLDFLAGS)
 
 test: build_test
+	@echo [EXEC] $(TESTDIR)/run
 	@$(TESTDIR)/run
 
 valgrind_test: build_test
@@ -65,7 +66,7 @@ dir:
 	@mkdir -p $(BUILDDIR)
 
 $(OBJECTDIR)/%.o: $(SOURCEDIR)/%.c
-	@echo [CC] $<
+	@echo [ CC ] $<
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 $(TESTDIR)/%.o: $(TESTDIR)/%.c
@@ -75,12 +76,13 @@ $(TESTDIR)/%.o: $(TESTDIR)/%.c
 #sudo setcap 'cap_net_bind_service=+ep' /path/to/prog
 #to allow port access
 run: $(DEFAULT)
+	@echo [EXEC] $(BUILDDIR)/$(OUTPUT) $(RUNARGS)
 	$(BUILDDIR)/$(OUTPUT) $(RUNARGS)
 
 .PHONY: clean
 clean:
-	@echo [RM] $(OBJ) $(TOBJS)
-	@echo [RM] $(BUILDDIR)/$(OUTPUT) $(TESTDIR)/run
+	@echo [ RM ] $(OBJ) $(TOBJS)
+	@echo [ RM ] $(BUILDDIR)/$(OUTPUT) $(TESTDIR)/run
 	@rm -df  $(OBJ) $(TOBJS) $(TESTDIR)/run
 	@rm -Rdf $(BUILDDIR) $(OBJECTDIR)
 	@rm -f {$(SOURCEDIR),$(TESTDIR)}/*.gc{da,no}
