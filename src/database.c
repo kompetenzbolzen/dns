@@ -10,6 +10,9 @@ int database_init ( database_t* _database ) {
 	unsigned int i = 0;
 	size_t rr_size;
 
+	if ( !_database )
+		return 1;
+
 	/* Initialize 2D array of tree_node pointers, paranoia style */
 	if ( !( _database->zone = malloc( sizeof( tree_node_t** ) * DB_CLASS_LEN ) ) )
 		return 1;

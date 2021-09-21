@@ -8,6 +8,7 @@
 
 #include "../src/database.h"
 #include "../src/zonefile.h"
+#include <check.h>
 
 START_TEST ( test_database_parse_zonefile ) {
 	int ret;
@@ -32,11 +33,31 @@ START_TEST ( test_database_parse_zonefile ) {
 	ck_assert_ptr_null( db.zone );
 } END_TEST
 
+START_TEST (test_database_error_handling) {
+	database_t db;
+	database_rdata_t rdata;
+	database_init(&db);
+
+	ck_assert_int_ne(database_init(NULL), 0);
+	ck_assert_int_ne(database_destroy(NULL), 0);
+	ck_assert_int_ne(database_query(NULL, NULL, NULL, 0, 0, 0), 0);
+
+	/* Record not found */
+	ck_assert_int_ne(database_query(&rdata, &db, "aa", 3, 1, 1), 0);
+
+	/* Invalid record */
+	ck_assert_int_ne(database_query(&rdata, &db, "aa", 3, 1, 777), 0);
+	ck_assert_int_ne(database_query(&rdata, &db, "aa", 3, 777, 1), 0);
+
+	database_destroy(&db);
+} END_TEST
+
 
 TCase* test_database(void) {
 	TCase *tc = tcase_create("Database");
 
 	tcase_add_test(tc, test_database_parse_zonefile);
+	tcase_add_test(tc, test_database_error_handling);
 
 	return tc;
 }
