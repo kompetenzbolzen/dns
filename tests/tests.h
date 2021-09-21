@@ -17,3 +17,4 @@ TCase* test_tree(void);
 TCase* test_zonefile(void);
 TCase* test_record(void);
 TCase* test_database(void);
+TCase* test_list(void);

@@ -10,11 +10,11 @@ int list_add( list_element_t** _root, void* _data ) {
 	list_element_t** iter = _root;
 	list_element_t* new_element = malloc( sizeof(list_element_t) );
 
-	new_element->data = _data;
-	new_element->next = NULL;
-
 	if( !new_element )
 		return 1;
+
+	new_element->data = _data;
+	new_element->next = NULL;
 
 	while(*iter)
 		iter = & (*iter)->next;
