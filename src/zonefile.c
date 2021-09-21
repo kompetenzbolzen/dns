@@ -137,6 +137,9 @@ int zonefile_to_database (database_t *_database, char* _file) {
 		line = NULL;
 	}
 
+	if(line)
+		free(line);
+
 	fclose(zfile);
 	return 0;
 }
