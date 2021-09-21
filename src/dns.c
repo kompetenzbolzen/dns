@@ -163,10 +163,10 @@ int dns_parse_packet ( char* _buffer, int _bufflen, dns_message_t* _msg )
 	qsize = sizeof(*(_msg->question)) * (unsigned)_msg->question_count;
 	_msg->question_count = _msg->header.question_count;
 	_msg->question = malloc ( qsize );
-	memset( _msg->question, 0, qsize );
 
 	if (!_msg->question) /* malloc failed */
 		return 1;
+	memset( _msg->question, 0, qsize );
 
 	ptr = 12; /* byte counter */
 
@@ -181,7 +181,8 @@ int dns_parse_packet ( char* _buffer, int _bufflen, dns_message_t* _msg )
 		_msg->question[i].qname_len = qname_len;
 		ptr += qname_len;
 
-		if( ptr >= (_bufflen - 4) ) /* Out of bounds check */
+		/* TODO this is fishy. should be 4, only works with 3 */
+		if( ptr >= (_bufflen - 3) ) /* Out of bounds check */
 			return 1;
 
 		_msg->question[i].qtype = (uint16_t)((uint8_t)*(_buffer + ptr) << 8) | ((uint8_t)*(_buffer + ptr + 1));
@@ -295,7 +296,6 @@ int qname_check( char* _source, int _sourcelen )
 	int next_dot = 0;
 	int i = 0;
 
-	/* TODO Bounds checking!! */
 	if (!_sourcelen)
 		return -1;
 
