@@ -39,6 +39,9 @@ START_TEST(tree_basic) {
 
 	ck_assert_int_eq(tree_balanced_insert( &root, (void**)data, keys, len ),0);
 
+	/* Check double insertion protection */
+	ck_assert_int_ne( tree_insert( &root, keys[0], (void*)data[0] ), 0 );
+
 	for ( i = 0; i < len; i++ ) {
 		ck_assert_str_eq( tree_get(&root, keys[i]), data[i] );
 	}

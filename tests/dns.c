@@ -7,6 +7,7 @@
 #include "tests.h"
 
 #include "../src/dns.h"
+#include <check.h>
 
 START_TEST (dns_qname) {
 	char in[128];
@@ -75,12 +76,25 @@ START_TEST (dns_message_fuzz) {
 	ck_assert_float_le( (float)valid_cnt / (float)limit * 100, 10);
 } END_TEST
 
+START_TEST (dns_error_handling) {
+	char qname[32];
+	char fqdn[32];
+
+	strncpy(fqdn, "test.example.com", 32);
+
+	ck_assert_int_lt( fqdn_to_qname(fqdn, 32, qname, 5), 0 );
+
+	fqdn_to_qname(fqdn, 32, qname, 32);
+	ck_assert_int_lt( qname_to_fqdn(qname, 32, fqdn, 5), 0 );
+} END_TEST
+
 TCase* test_dns(void) {
 	TCase *tc = tcase_create("DNS");
 
 	tcase_add_test(tc, dns_qname);
 	tcase_add_test(tc, dns_qname_fuzz);
 	tcase_add_test(tc, dns_message_fuzz);
+	tcase_add_test(tc, dns_error_handling);
 
 	return tc;
 }
