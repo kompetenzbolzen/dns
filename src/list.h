@@ -20,6 +20,6 @@ int list_add( list_element_t** _root, void* _data );
 
 int list_sort ( list_element_t** _root );
 
-int list_length ( list_element_t* _root );
+int list_length ( list_element_t** _root );
 
 void* list_pop_front ( list_element_t** _root );

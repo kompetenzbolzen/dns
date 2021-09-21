@@ -20,14 +20,14 @@ START_TEST ( test_list_all ) {
 
 	/* Not implemented
 	list_sort(&root);
-
-	ck_assert_int_eq( list_length(root), 9 );
 	*/
+	ck_assert_int_ne( list_sort(&root), 0 );
+	ck_assert_int_eq( list_length(&root), 9 );
 
 	for ( i=0; i<=8; i++ )
 		ck_assert_int_eq(*(int*)list_pop_front(&root), i);
 
-	/*ck_assert_int_eq( list_length(root), 0 );*/
+	ck_assert_int_eq( list_length(&root), 0 );
 
 } END_TEST
 

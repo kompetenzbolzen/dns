@@ -28,8 +28,19 @@ int list_sort ( list_element_t** _root ) {
 	return -1;
 }
 
-int list_length ( list_element_t* _root ) {
-	return -1;
+int list_length ( list_element_t** _root ) {
+	list_element_t** iter = _root;
+	int ret = 0;
+
+	if( !_root )
+		return -1;
+
+	while(*iter) {
+		ret ++;
+		iter = & (*iter)->next;
+	}
+
+	return ret;
 }
 
 void* list_pop_front ( list_element_t** _root ) {
