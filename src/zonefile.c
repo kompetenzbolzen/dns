@@ -80,19 +80,20 @@ int zonefile_parse_line(database_t *_database, char *_line) {
 	db_entry = malloc((unsigned)data_len + 6);
 	if ( !db_entry )
 		goto err;
+	memset(db_entry, 0, (unsigned)data_len + 6);
 
 	DEBUG("Found %s record at %s", parts[3], parts[0]);
 
 	*((uint32_t*)db_entry) = ttl;
-	*((uint16_t*)db_entry+4) = (uint16_t) data_len;
+	*((uint16_t*)(db_entry+4)) = (uint16_t) data_len;
 	strncpy(db_entry+6, data, (unsigned)data_len);
 
-	/* Error Here */
-	DEBUG("LEN: %u, %i", *( (uint16_t*)(db_entry + 4) ), data_len);
-
 	/* This breaks abstraction boundries! */
-	ret = tree_insert( &_database->zone[class-1][type-1], qname, db_entry );
-
+	if ( tree_insert( &_database->zone[class-1][type-1], qname, db_entry ) ) {
+		LOGPRINTF(_LOG_ERROR, "Failed to insert in database. Does this record already exist?");
+		free(db_entry);
+		goto err;
+	}
 
 	free(data);
 	return 0;
