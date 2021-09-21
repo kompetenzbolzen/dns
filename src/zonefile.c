@@ -102,6 +102,7 @@ err:
 	return -1;
 }
 
+/* TODO convert to creating lists of data to insert efficiently */
 int zonefile_to_database (database_t *_database, char* _file) {
 	FILE *zfile = NULL;
 	char *line  = NULL;
