@@ -194,6 +194,7 @@ int dns_parse_packet ( char* _buffer, int _bufflen, dns_message_t* _msg )
 	return 0;
 }
 
+/* TODO Check logic, especially size requirements */
 int fqdn_to_qname( char* _source, int _sourcelen, char* _sink, int _sinklen )
 {
 	int i, o;
@@ -257,6 +258,7 @@ int fqdn_check ( char* _source, int _sourcelen ) {
 	return 0;
 }
 
+/* TODO Check logic, especially size requirements */
 int qname_to_fqdn( char* _source, int _sourcelen, char* _sink, int _sinklen )
 {
 	unsigned int next_dot;

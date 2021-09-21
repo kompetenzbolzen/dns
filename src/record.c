@@ -128,7 +128,11 @@ static ssize_t record_rdata_qname(char* _str, void** _rdata) {
 		return -1;
 	}
 
-	*_rdata = malloc(qlen);
+	/*
+	 * TODO Some funny business is going on around here
+	 * Related to fqdn_to_qname()
+	 */
+	*_rdata = malloc(qlen+1);
 
 	if ( !*_rdata )
 		return -1;
@@ -215,7 +219,7 @@ uint16_t record_type_from_str(char* _str) {
 ssize_t record_rdata_from_str(void** _rdata, char *_str, uint16_t _rdtype) {
 	uint16_t index;
 
-	if ( _rdtype >= record_types_len )
+	if ( _rdtype > record_types_len )
 		return -1;
 
 	if ( !_rdata || !_str )
