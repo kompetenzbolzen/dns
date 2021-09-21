@@ -11,6 +11,7 @@
 #include <sys/types.h>
 
 #include "log.h"
+#include "dns.h"
 
 uint16_t record_class_from_str(char* _str);
 
