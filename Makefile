@@ -80,6 +80,10 @@ run: $(DEFAULT)
 	@echo [EXEC] $(BUILDDIR)/$(OUTPUT) $(RUNARGS)
 	$(BUILDDIR)/$(OUTPUT) $(RUNARGS)
 
+valgrind: $(DEFAULT)
+	@echo [EXEC] valgrind $(BUILDDIR)/$(OUTPUT) $(RUNARGS)
+	valgrind --leak-check=full $(BUILDDIR)/$(OUTPUT) $(RUNARGS)
+
 .PHONY: clean
 clean:
 	@echo [ RM ] $(OBJ) $(TOBJS)
