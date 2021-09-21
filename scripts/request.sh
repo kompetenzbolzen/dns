@@ -1,5 +1,5 @@
 #!/bin/bash
 
 while true; do
-	dig test.example.com @localhost | sed -e '/;.*/d' -e '/^$/d'
+	dig +short -p 5333 test.example.com @localhost || break
 done
