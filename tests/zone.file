@@ -1,0 +1,4 @@
+test.example.com. 3600 IN A 69.69.69.69
+test1.example.com. 3600 IN CNAME test.example.com.
+ns.example.com. 3600 IN A 69.69.69.70
+example.com. 3600 IN NS ns.example.com.
