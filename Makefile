@@ -84,6 +84,10 @@ valgrind: $(DEFAULT)
 	@echo [EXEC] valgrind $(BUILDDIR)/$(OUTPUT) $(RUNARGS)
 	valgrind --leak-check=full $(BUILDDIR)/$(OUTPUT) $(RUNARGS)
 
+chaos: LDFLAGS += -ldl
+chaos: CFLAGS += -D_CHAOS -D_GNU_SOURCE
+chaos: clean debug
+
 .PHONY: clean
 clean:
 	@echo [ RM ] $(OBJ) $(TOBJS)
