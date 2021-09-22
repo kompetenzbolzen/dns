@@ -155,11 +155,13 @@ static ssize_t record_rdata_a(char* _str, void** _rdata) {
 
 	len = strlen(_str) + 1;
 	str = malloc(len);
+	if ( !str )
+		return -1;
 	strncpy(str, _str, len);
 
 	*_rdata = malloc(4);
 	if ( !*_rdata )
-		return -1;
+		goto err;
 
 	tok = strtok(str, ".");
 	if( !tok )

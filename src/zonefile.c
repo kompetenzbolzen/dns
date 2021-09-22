@@ -52,6 +52,10 @@ int zonefile_parse_line(database_t *_database, char *_line) {
 		return -1;
 	}
 	qname = malloc( (unsigned)fqdn_len+2 );
+	if( !qname ) {
+		LOGPRINTF(_LOG_ERRNO, "malloc()");
+		return -1;
+	}
 	if ( fqdn_to_qname(parts[0], fqdn_len, qname, fqdn_len+2) < 0) {
 		LOGPRINTF(_LOG_ERROR, "Failed to convert to QNAME. This is a bug.");
 		return -1;
