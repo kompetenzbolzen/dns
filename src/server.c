@@ -5,13 +5,25 @@
 
 #include "server.h"
 
-static int sock_server;
+static int sock_server[2];
+
+static void server_dummy_accept_tcp(int fd) {
+	struct sockaddr_in client;
+	socklen_t len = sizeof(client);
+	int client_fd = -1;
+
+	LOGPRINTF(_LOG_WARNING, "TCP connection recieved, but not implemented");
+
+	client_fd = accept(fd, (struct sockaddr*)&client, &len);
+	close(client_fd);
+}
 
 void server_start ( server_config_t* _config )
 {
 	fd_set sel_fds;
 	struct timeval sel_interval;
 	int    sel_ret = 0;
+	int    nfds = -1;
 
 	database_t zone_db;
 
@@ -28,24 +40,33 @@ void server_start ( server_config_t* _config )
 		exit(1);
 	}
 
-	sock_server = server_get_socket( _config->bind_ip, _config->bind_port );
+	sock_server[0] = server_get_socket( _config->bind_ip, _config->bind_port, SOCK_DGRAM );
+	sock_server[1] = server_get_socket( _config->bind_ip, _config->bind_port, SOCK_STREAM );
+	listen( sock_server[1], 10 );
+
+	nfds = (sock_server[0] > sock_server[1] ? sock_server[0] : sock_server[1]) + 1;
 
 	LOGPRINTF(_LOG_NOTE, "Done!");
 
 	while( 1 ) {
 		FD_ZERO ( &sel_fds );
-		FD_SET  ( sock_server, &sel_fds );
+		FD_SET  ( sock_server[0], &sel_fds );
+		FD_SET  ( sock_server[1], &sel_fds );
 		sel_interval.tv_sec  = 0;
 		sel_interval.tv_usec = 10000;
 
-		sel_ret = select( sock_server + 1, &sel_fds, NULL, NULL, &sel_interval );
+		sel_ret = select( nfds, &sel_fds, NULL, NULL, &sel_interval );
 
 		if ( sel_ret < 0 ) {
 			LOGPRINTF( _LOG_ERRNO, "select()" );
 			exit(1);
 		} else if ( sel_ret ) {
 			DEBUG("Connection");
-			server_handle_connection( sock_server, &zone_db );
+			if (FD_ISSET( sock_server[0], &sel_fds ))
+				server_handle_connection( sock_server[0], &zone_db );
+
+			if (FD_ISSET( sock_server[1], &sel_fds ))
+				server_dummy_accept_tcp(sock_server[1]);
 		}
 	}
 }
@@ -133,13 +154,13 @@ end:
 	dns_destroy_struct ( &dns_req );
 }
 
-int server_get_socket ( char* _bind_ip, uint16_t _bind_port ) {
+int server_get_socket ( char* _bind_ip, uint16_t _bind_port, sa_family_t _sock ) {
 	struct sockaddr_in socket_addr;
 	int server_socket;
 
 	LOGPRINTF(_LOG_NOTE, "Binding on %s:%i", _bind_ip, _bind_port);
 
-	server_socket = socket ( AF_INET, SOCK_DGRAM, 0 );
+	server_socket = socket ( AF_INET, _sock, 0 );
 	if ( server_socket == -1 ) {
 		LOGPRINTF(_LOG_ERRNO, "failed to create socket");
 		exit ( errno );
@@ -163,8 +184,10 @@ int server_get_socket ( char* _bind_ip, uint16_t _bind_port ) {
 	return server_socket;
 }
 
+
 void signal_term ( int _sig ) {
 	LOGPRINTF( _LOG_NOTE, "Server shutting down" );
-	close( sock_server );
+	close( sock_server[0] );
+	close( sock_server[1] );
 	exit(0);
 }
